@@ -94,7 +94,29 @@ public class LinkedListDeque <T> implements Deque<T> {
             return p.item;
         }
     }
-    //public T getRecursive(int index){
-        //如何在只有参数index的情况下，并且对index > size - 1 时返回 null ？
-    //}
+    private T getRecursiveHelper(int index, TNode p){
+        if (index > size - 1){
+            return null;
+        }
+        if (index == 0){
+            return p.item;
+        }
+        else {
+            return getRecursiveHelper(index - 1, p.next);
+        }
+    }
+    public T getRecursive(int index){
+        return getRecursiveHelper(index, sentinel.next);
+    }
+    public static void main(String[] args){
+        LinkedListDeque<Integer> l = new LinkedListDeque<Integer>();
+        l.addFirst(10);
+        l.addFirst(11);
+        l.addFirst(12);
+        l.addFirst(13);
+        System.out.println(l.getRecursive(0));
+        System.out.println(l.getRecursive(1));
+        System.out.println(l.getRecursive(2));
+        System.out.println(l.getRecursive(3));
+    }
 }
