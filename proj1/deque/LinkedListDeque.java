@@ -110,48 +110,40 @@ public class LinkedListDeque <T> implements Deque<T> {
     public T getRecursive(int index){
         return getRecursiveHelper(index, sentinel.next);
     }
-    public Iterator<T> iterator() {
-        return new LinkedListDequeIterator();
+    public class LDIterator implements Iterator<T>{
+        private int pos;//指向当前元素
+        public LDIterator(){//初始化
+            pos = 0;
+        }
+        public boolean hasNext(){
+            return pos < size();
+        }
+        public T next(){
+            T result = get(pos);
+            pos += 1;
+            return result;
+        }
+
     }
-
-    private class LinkedListDequeIterator implements Iterator<T> {
-        private TNode iterNode;
-
-        LinkedListDequeIterator() {
-            iterNode = sentinel.next;
-        }
-
-        public boolean hasNext() {
-            return iterNode != sentinel;
-        }
-
-        public T next() {
-            T returnItem = iterNode.item;
-            iterNode = iterNode.next;
-            return returnItem;
-        }
+    public Iterator<T> iterator(){
+        return new LDIterator();
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
+    public boolean equals(Object o){
+        if (o == this){
             return true;
         }
-        if (o == null) {
+        if (o == null){
             return false;
         }
-
-        if (!(o instanceof Deque)) {
+        if (o.getClass() != this.getClass()){
             return false;
         }
-        Deque<T> other = (Deque<T>) o;
-        if (size() != other.size()) {
+        LinkedListDeque newO = (LinkedListDeque) o;
+        if (newO.size() != size()){
             return false;
         }
         for (int i = 0; i < size(); i++) {
-            T item1 = get(i);
-            T item2 = other.get(i);
-            if (!item1.equals(item2)) {
+            if ( !this.get(i).equals(newO.get(i)) ){
                 return false;
             }
         }

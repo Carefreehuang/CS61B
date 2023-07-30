@@ -111,51 +111,44 @@ public class ArrayDeque<T> implements Deque<T>{
                 nextFirst = newcapacity-1;
                 nextLast = size;
         }
-        private class ArrayDequeIterator<T> implements Iterator<T> {
-                private int pos;
 
-                ArrayDequeIterator() {
-                        pos = 0;
+        public class ADIterator implements Iterator<T>{
+                private int pos;//指向当前元素
+                public ADIterator(){//初始化
+                        pos = (nextFirst + 1) % capacity;
                 }
-
-                public boolean hasNext() {
-                        return pos < size;
+                public boolean hasNext(){
+                        return pos < size();
                 }
-
-                public T next() {
-                        T returnItem = (T) get(pos);
+                public T next(){
+                        T result = get(pos);
                         pos += 1;
-                        return returnItem;
+                        return result;
                 }
-        }
-        public Iterator<T> iterator() {
-                return new ArrayDequeIterator();
-        }
 
-        @Override
-        public boolean equals(Object o) {
-                if (this == o) {
+        }
+        public Iterator<T> iterator(){
+                return new ADIterator();
+        }
+        public boolean equals(Object o){
+                if (o == this){
                         return true;
                 }
-                if (o == null) {
+                if (o == null){
                         return false;
                 }
-
-                if (!(o instanceof Deque)) {
+                if (o.getClass() != this.getClass()){
                         return false;
                 }
-                Deque<T> other = (Deque<T>) o;
-                if (size() != other.size()) {
+                ArrayDeque newO = (ArrayDeque) o;
+                if (newO.size() != size()){
                         return false;
                 }
                 for (int i = 0; i < size(); i++) {
-                        T item1 = get(i);
-                        T item2 = other.get(i);
-                        if (!item1.equals(item2)) {
+                        if ( !this.get(i).equals(newO.get(i)) ){
                                 return false;
                         }
                 }
                 return true;
         }
-
 }
