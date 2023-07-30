@@ -128,6 +128,9 @@ public class ArrayDeque<T> implements Deque<T>{
                         return returnItem;
                 }
         }
+        public Iterator<T> iterator() {
+                return new ArrayDequeIterator();
+        }
 
         @Override
         public boolean equals(Object o) {
