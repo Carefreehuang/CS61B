@@ -6,8 +6,8 @@ public class ArrayDeque<T> implements Deque<T>{
         private T[] items;
         private int capacity = 8;
         private int size;
-        public int nextFirst;//队首下标
-        public int nextLast;//队尾下标
+        private int nextFirst;//队首下标
+        private int nextLast;//队尾下标
         public ArrayDeque(){
                 //初始大小以及初始点是可以随便更改的，以下参照ppt
                 items = (T[]) new Object[capacity];
@@ -87,13 +87,13 @@ public class ArrayDeque<T> implements Deque<T>{
         public T get(int index){
                 if (index <= size - 1){
                         int first = (nextFirst + 1) % capacity;
-                        return items[first + index];
+                        return items[(first + index) % capacity];
                 }
                 else {
                         return null;
                 }
         }
-        public void resize(int newcapacity){
+        private void resize(int newcapacity){
                 T[] a = (T[]) new Object[newcapacity];
                 //如何复制不打乱原来顺序是关键
                 //选择从头到尾复制到新的扩张数组(从0 - size ),操作类似于printdeque
@@ -158,8 +158,4 @@ public class ArrayDeque<T> implements Deque<T>{
                 return true;
         }
 
-
-        public static void main(String[] args){
-
-}
 }

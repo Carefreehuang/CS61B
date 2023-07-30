@@ -4,7 +4,7 @@ import java.util.Iterator;
 
 public class LinkedListDeque <T> implements Deque<T> {
     /*-----------------TNode----------------*/
-    public class TNode{
+    private class TNode{
         public T item;
         public TNode prev;
         public TNode next;
@@ -156,16 +156,5 @@ public class LinkedListDeque <T> implements Deque<T> {
             }
         }
         return true;
-    }
-    public static void main(String[] args){
-        LinkedListDeque<Integer> l = new LinkedListDeque<Integer>();
-        l.addFirst(10);
-        l.addFirst(11);
-        l.addFirst(12);
-        l.addFirst(13);
-        System.out.println(l.getRecursive(0));
-        System.out.println(l.getRecursive(1));
-        System.out.println(l.getRecursive(2));
-        System.out.println(l.getRecursive(3));
     }
 }
