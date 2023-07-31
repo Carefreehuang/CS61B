@@ -115,7 +115,7 @@ public class ArrayDeque<T> implements Deque<T>{
         public class ADIterator implements Iterator<T>{
                 private int pos;//指向当前元素
                 public ADIterator(){//初始化
-                        pos = (nextFirst + 1) % capacity;
+                        pos = 0;
                 }
                 public boolean hasNext(){
                         return pos < size();
