@@ -3,152 +3,108 @@ package deque;
 import java.util.Iterator;
 
 public class ArrayDeque<T> implements Deque<T>{
-        private T[] items;
-        private int capacity = 8;
+        private T[]  items;
+        private int nextFirst;
+        private int nextLast;
         private int size;
-        private int nextFirst;//队首下标
-        private int nextLast;//队尾下标
+        private void setIndex(int first,int last){//设置索引位置
+                nextFirst = first;
+                nextLast  = last;
+        }
+        private int getFirst(){
+                return (nextFirst + 1) % items.length;
+        }
+        private int getLast(){
+                return (nextLast - 1 + items.length) % items.length;
+        }
+        private void incFirst(){
+                nextFirst = (nextFirst + 1) % items.length;
+        }
+        private  void decFirst(){
+                nextFirst = (nextFirst - 1 + items.length) % items.length;
+        }
+        private void incLast(){
+                nextLast = (nextLast + 1) % items.length;
+        }
+        private  void decLast(){
+                nextLast = (nextLast - 1 + items.length) % items.length;
+        }
         public ArrayDeque(){
-                //初始大小以及初始点是可以随便更改的，以下参照ppt
-                items = (T[]) new Object[capacity];
-                nextFirst = 4;
-                nextLast  = 5;
+                items = (T[]) new Object[8];
                 size = 0;
+                setIndex(4,5);
         }
+
         @Override
-        public void addFirst(T t){
-                if (size == items.length){
-                        resize(2 *size);
+        public int size() {
+                return size;
+        }
+        public void resize(int capcacity){
+                T[] a = (T[]) new Object[capacity];
+                int first = getFirst();
+                int last = getLast();
+                if (first < last) {     //没有环绕，正常复制
+                        System.arraycopy(items, first, a, 0, size);
+                } else {                //有环绕，考虑情况
+                        if (first <= items.length - 1) {
+                                System.arraycopy(items, first, a, 0, items.length - first);
+                        }
+                        if (last >= 0) {
+                                System.arraycopy(items, 0, a, items.length - first, last + 1);
+                        }
                 }
-                size += 1;
-                items[nextFirst] = t;
-                nextFirst = (nextFirst - 1 + capacity) % capacity;// 加上 capacity ！
+                items = a;
+                setIndex(items.length - 1, size);
         }
+
         @Override
-        public void addLast(T t){
+        public void addFirst(T item) {
                 if (size == items.length){
                         resize(2 * size);
                 }
+                items[nextFirst] = item;
+                decFirst();
                 size += 1;
-                items[nextLast] = t;
-                nextLast = (nextLast + 1) % capacity;
-        }
-        @Override
-        public int size(){
-                return size;
         }
 
         @Override
-        public void printDeque(){//首尾指针相同， 队列满， 打印顺序的确定
-                int first = (nextFirst + 1) % capacity;
-                int last = (nextLast - 1 + capacity) % capacity;
-                while (first != last){
-                        System.out.print(items[first] + " ");
-                        first = (first + 1) % capacity;
+        public void addLast(T item) {
+                if (size == items.length){
+                        resize(2 * size);
                 }
-                System.out.print(items[first] + " ");  //最后一步，last == first，所以需要额外打印。
-                System.out.println(" ");
+                items[nextLast] = item;
+                incLast();
+                size += 1;
         }
 
         @Override
-        public T removeFirst(){//remove是真的挺难的！！！
-                //不是常数时间
-                //实现的很蠢，应该可以直接修改指针位置
-                int first = (nextFirst + 1) % capacity;
-                int last = (nextLast - 1 + capacity) % capacity;
-                if (items[first] == null){
+        public T removeFirst() {
+                if (size == 0){
                         return null;
                 }
-                else {
-                        T result = items[first];
-                        while (first != last) {
-                                items[first] = items[first + 1];
-                                first = (first + 1) % capacity;
-                        }
-                        items[first] = null;
-                        size -= 1;
-                        nextLast -= 1;
-                        return result;
-                }
-        }
-        @Override
-        public T removeLast(){//remove是真的挺难的！！！
-                int last = (nextLast - 1 + capacity) % capacity;
-                if (items[last] == null){
-                        return null;
-                }else{
-                T result = items [last];
-                items[last] = null;
+                sizeCheck();
+                T result = items[getFirst()];
+                items[getFirst()] = null;
+                incFirst();
                 size -= 1;
-                nextLast = last;
-                return result;}
+                return result;
         }
+
         @Override
-        public T get(int index){
-                if (index <= size - 1){
-                        int first = (nextFirst + 1) % capacity;
-                        return items[(first + index) % capacity];
-                }
-                else {
+        public T removeLast() {
+                if (size == 0){
                         return null;
                 }
-        }
-        private void resize(int newcapacity){
-                T[] a = (T[]) new Object[newcapacity];
-                //如何复制不打乱原来顺序是关键
-                //选择从头到尾复制到新的扩张数组(从0 - size ),操作类似于printdeque
-                int i = 0;
-                int first = (nextFirst + 1) % capacity;
-                int last = (nextLast - 1 + capacity) % capacity;
-                while (first != last){
-                        a[i] = items[first];
-                        first = (first + 1) % capacity;
-                        i++;
-                }
-                a[i] = items[first];
-                items = a;
-                capacity = newcapacity;
-                nextFirst = newcapacity-1;
-                nextLast = size;
+                sizeCheck();
+                T result = items[getLast()];
+                items[getLast()] = null;
+                decLast();
+                size -= 1;
+                return result;
         }
 
-        public class ADIterator implements Iterator<T>{
-                private int pos;//指向当前元素
-                public ADIterator(){//初始化
-                        pos = 0;
-                }
-                public boolean hasNext(){
-                        return pos < size();
-                }
-                public T next(){
-                        T result = get(pos);
-                        pos += 1;
-                        return result;
-                }
-
-        }
-        public Iterator<T> iterator(){
-                return new ADIterator();
-        }
-        public boolean equals(Object o){
-                if (o == this){
-                        return true;
-                }
-                if (o == null){
-                        return false;
-                }
-                if (o.getClass() != this.getClass()){
-                        return false;
-                }
-                ArrayDeque newO = (ArrayDeque) o;
-                if (newO.size() != size()){
-                        return false;
-                }
-                for (int i = 0; i < size(); i++) {
-                        if ( !this.get(i).equals(newO.get(i)) ){
-                                return false;
-                        }
-                }
-                return true;
+        @Override
+        public T get(int index) {
+                return items[];
         }
 }
