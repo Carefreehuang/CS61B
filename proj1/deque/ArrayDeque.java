@@ -39,13 +39,23 @@ public class ArrayDeque<T> implements Deque<T>{
         public int size() {
                 return size;
         }
-        public void resize(int capcacity){
+
+        @Override
+        public void printDeque() {
+                for (int i = 0; i < size; i++) {
+                        System.out.print(get(i) + " ");
+
+                }
+                System.out.println(" ");
+        }
+
+        private void resize(int capacity) {//依旧不太明白
                 T[] a = (T[]) new Object[capacity];
                 int first = getFirst();
                 int last = getLast();
-                if (first < last) {     //没有环绕，正常复制
+                if (first < last) {
                         System.arraycopy(items, first, a, 0, size);
-                } else {                //有环绕，考虑情况
+                } else {
                         if (first <= items.length - 1) {
                                 System.arraycopy(items, first, a, 0, items.length - first);
                         }
@@ -56,7 +66,11 @@ public class ArrayDeque<T> implements Deque<T>{
                 items = a;
                 setIndex(items.length - 1, size);
         }
-
+        private void sizeCheck(){
+                if (size < items.length / 4 + 1 && items.length > 16){
+                        resize(items.length / 2);
+                }
+        }
         @Override
         public void addFirst(T item) {
                 if (size == items.length){
@@ -105,6 +119,54 @@ public class ArrayDeque<T> implements Deque<T>{
 
         @Override
         public T get(int index) {
-                return items[];
+                return items[(getFirst() + index) % items.length];
+        }
+
+        public Iterator<T> iterator() {
+                return new ArrayDequeIterator();
+        }
+
+        private class ArrayDequeIterator<T> implements Iterator<T> {
+                private int pos;
+
+                ArrayDequeIterator() {
+                        pos = 0;
+                }
+
+                public boolean hasNext() {
+                        return pos < size;
+                }
+
+                public T next() {
+                        T returnItem = (T) get(pos);
+                        pos += 1;
+                        return returnItem;
+                }
+        }
+
+        @Override
+        public boolean equals(Object o) {
+                if (this == o) {
+                        return true;
+                }
+                if (o == null) {
+                        return false;
+                }
+
+                if (!(o instanceof Deque)) {
+                        return false;
+                }
+                Deque<T> other = (Deque<T>) o;
+                if (size() != other.size()) {
+                        return false;
+                }
+                for (int i = 0; i < size(); i++) {
+                        T item1 = get(i);
+                        T item2 = other.get(i);
+                        if (!item1.equals(item2)) {
+                                return false;
+                        }
+                }
+                return true;
         }
 }
