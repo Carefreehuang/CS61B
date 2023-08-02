@@ -60,7 +60,8 @@ public class Dog implements Serializable{ // TODO
     public void saveDog() {
         // TODO (hint: don't forget dog names are unique)
         File outFile = join(DOGS_FOLDER,name);
-        writeObject(outFile, Dog.class);
+        writeObject(outFile, this);//问题出在
+        //不能写出writrObject(outFile, Dog.class);
     }
 
     @Override
