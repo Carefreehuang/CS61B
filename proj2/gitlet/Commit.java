@@ -8,6 +8,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import static gitlet.Utils.join;
+
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
@@ -23,13 +25,13 @@ public class Commit implements Serializable {
      * variable is used. We've provided one example for `message`.
      */
 
-    private String message; // 提交信息
-    private Date currentTime; //当前时间
-    private String timeStamp; //时间戳
-    private List<String> parentsID;//父提交的ID
+    public String message; // 提交信息
+    public Date currentTime; //当前时间
+    public String timeStamp; //时间戳
+    public List<String> parentsID;//父提交的ID
     //public Hashtable<String,File> blobID; //指向的blob对象
-    public Hashtable<File,String> blobID;  //存储 blob对象 ——> 追踪文件名的映射
-    private String commitID;
+    public Hashtable<String,File> blobID;  //存储 blob对象 ——> 追踪文件名的映射
+    public String commitID;
     /* TODO: fill in the rest of this class. */
     public Commit(String message, Date date){
         this.message = message;
@@ -48,11 +50,17 @@ public class Commit implements Serializable {
     }
     public static Commit copyParent(String message, Date date){//从parent生成commit
         Tree tree = Utils.readObject(Repository.TREE, Tree.class);
-        Commit parentCommit = Utils.readObject(tree.search(Repository.headID()),Commit.class);//获取parentcommit
+        Commit parentCommit = Repository.headcommit();//获取parentcommit
         Commit commit = new Commit(message, new Date());
         commit.blobID = parentCommit.blobID;
+        //System.out.println("add前" + commit.parentsID.size());
         commit.parentsID.add(parentCommit.commitID);
+        //System.out.println("add后" + commit.parentsID.size());
         return commit;
+    }
+    public Commit returnParent(){//返回第一个父commit
+        File parentfile = join(Repository.OBJECTS_DIR,this.parentsID.get(0));
+        return Utils.readObject(parentfile,Commit.class);
     }
 
 }

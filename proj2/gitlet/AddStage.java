@@ -5,12 +5,12 @@ import java.io.Serializable;
 import java.util.Hashtable;
 
 public class AddStage implements Serializable {
-    public Hashtable<File, String> hashMap;
+    public Hashtable<String, File> hashMap;
     public AddStage(){
         hashMap = new Hashtable<>();
     }
-    public void put(File blob, String filename){
-        hashMap.put(blob,filename);
+    public void put(String filename, File blob ){
+        hashMap.put(filename,blob);
     }
     public void save(){
         Utils.writeObject(Repository.ADDSTAGE,this);

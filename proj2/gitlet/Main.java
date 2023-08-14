@@ -29,8 +29,21 @@ public class Main {
                 Repository.add(args[1]);
                 break;
             case "commit":
-                validateNumArgs(args,1);
+                validateNumArgs(args,2);
                 Repository.commit(args[1]);
+                break;
+            case "log":
+                validateNumArgs(args,1);
+                Repository.log();
+                break;
+            case "rm":
+                validateNumArgs(args,2);
+                Repository.rm(args[1]);
+                break;
+            case "status":
+                validateNumArgs(args,1);
+                Repository.status();
+                break;
             // TODO: FILL THE REST IN
             default:  //如果改命令不是上面几个命令，输出....并exit；
                 System.out.println("No command with that name exists.");
@@ -38,9 +51,9 @@ public class Main {
         }
     }
     public static void validateNumArgs(String[] args, int n) {//判断命令和参数个数是否匹配
-        if (args.length != n) {
-            System.out.println("Incorrect operands.");
+       if (args.length != n) {
+           System.out.println("Incorrect operands.");
             System.exit(0);
-        }
+       }
     }
 }
