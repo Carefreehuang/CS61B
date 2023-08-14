@@ -30,7 +30,8 @@ public class Repository {
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
-    public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");//存储blob对象，commit对象
+    public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");//存储commit对象
+    public static final File BLOB_DIR = join(GITLET_DIR,"blob"); //存储blob
     public static final File REFS_DIR = join(GITLET_DIR, "refs");
     public static final File HEADS_DIR = join(REFS_DIR, "heads");
     public static final File ADDSTAGE = join(GITLET_DIR, "addstage");
@@ -45,6 +46,7 @@ public class Repository {
         OBJECTS_DIR.mkdir();
         REFS_DIR.mkdir();
         HEADS_DIR.mkdir();
+        BLOB_DIR.mkdir();
         AddStage addstage = new AddStage();
         Utils.writeObject(ADDSTAGE,addstage);
         RemoveStage removestage = new RemoveStage();
@@ -62,6 +64,9 @@ public class Repository {
         //writeObject(MASTER,initialCommit.generateID());//创建master，将master指向initcommit
     }
     public static void add(String fileName){
+        //如果文件的当前工作版本与当前提交中的版本完全相同，则不要将其添加到暂存区域；
+        // 如果文件已经在暂存区域，则应将其从暂存区域移除（当文件被修改、添加，
+        // 然后又改回原始版本时可能会发生这种情况）。
         initGitlet("add");//判断是否init
         File addfile = join(CWD, fileName);//获取要添加的文件
         if (!addfile.exists()){    //添加的文件不存在，exit
@@ -69,8 +74,14 @@ public class Repository {
             System.exit(0);
         } else{
             Blob blob = new Blob(fileName,readContentsAsString(addfile));//生成blob对象
+            RemoveStage removeStage = readObject(REMOVESTAGE, RemoveStage.class); //获取removestage
+            if (removeStage.hashMap.containsKey(fileName)){
+                //如果暂存当前暂存已经有的文件（相同blob）那么不添加并且将removestage中的文件删除
+                removeStage.hashMap.remove(fileName);
+                removeStage.save();
+            }
             if (!blobExist(blob.generateID())){ //如果不存在相同ID的blob，那么将blob写入obj，否则什么也不做
-                File blobfile = new File(OBJECTS_DIR,blob.generateID());
+                File blobfile = new File(BLOB_DIR,blob.generateID());
                 Tree tree = readObject(TREE,Tree.class);//打开tree
                 tree.put(blob.generateID(),blobfile);
                 writeObject(blobfile,blob); //保存blob到OBJ
@@ -89,12 +100,20 @@ public class Repository {
             System.out.println("Please enter a commit message.");
             System.exit(0);
         }
-        AddStage stage = readObject(ADDSTAGE, AddStage.class);
-        if (stage.isEmpty()){ //暂存区为空
-            System.out.println("No changes added to the commit.");
-            System.exit(0);
-        }
         Commit commit = Commit.copyParent(message,new Date()); //父节点复制一个commit
+        AddStage stage = readObject(ADDSTAGE, AddStage.class);
+        RemoveStage removestage = readObject(REMOVESTAGE, RemoveStage.class);
+        if (stage.isEmpty()){ //暂存区为空
+            if (removestage.isEmpty()) {//remove也为空
+                System.out.println("No changes added to the commit.");
+                System.exit(0);
+            }else {
+                Collection<String> filenames = removestage.hashMap.keySet();
+                for (String filename : filenames) {
+                    commit.blobID.remove(filename,removestage.hashMap.get(filename));
+                }
+            }
+        }
         //如何判断commit存储文件
 //        Enumeration<File> stagekeys = stage.hashMap.keys();
 //        while(stagekeys.hasMoreElements()){
@@ -105,6 +124,7 @@ public class Repository {
 //            // 如果指定的键已经存在于 Hashtable 中，put() 方法将更新对应的值；
 //            // 如果键不存在，则会添加新的键值对。
 //        }
+        //缺少工作目录删除文件的情况
         Collection<String> filenames = stage.hashMap.keySet();
         for (String filename : filenames) {
            commit.blobID.put(filename,stage.hashMap.get(filename));
@@ -117,18 +137,20 @@ public class Repository {
         tree.saveTree();
         Files.writeString(HEAD.toPath(),commit.generateID());//更新head
         Files.writeString(MASTER.toPath(),commit.generateID());//跟新master
+        removestage.clear();
+        removestage.save();
         stage.clear();//清空stage；
         stage.save();
     }
     public static void rm(String fileName){
         initGitlet("rm");
         AddStage stage = Utils.readObject(ADDSTAGE,AddStage.class);//获取stage对象
-        File headcommitfile = join(OBJECTS_DIR,Utils.readContentsAsString(HEAD));
-        Commit headcommit = Utils.readObject(headcommitfile,Commit.class);//获取当前head指向的commit
-        if (stage.hashMap.containsKey(fileName)){
+        Commit headcommit = headcommit();//获取当前head指向的commit
+        if (stage.hashMap.containsKey(fileName)){   //如果在暂存区中，那么取消暂存
             stage.hashMap.remove(fileName,stage.hashMap.get(fileName));
             stage.save();
-        } else if (headcommit.blobID.contains(fileName)) {//如果被追踪
+        } else if (headcommit.blobID.containsKey(fileName)) {//如果被追踪
+            //错误提示，contains,containsKey,containsValue不能乱用
             RemoveStage removestage = Utils.readObject(REMOVESTAGE,RemoveStage.class);//获得removestage对象
             removestage.put(fileName,headcommit.blobID.get(fileName));  //添加至removestage
             removestage.save();//保存removstage
@@ -141,7 +163,6 @@ public class Repository {
     }
     public static void log(){
         initGitlet("log");
-        File headcommitfile = join(OBJECTS_DIR,headID());
         Commit commit = headcommit();
        // System.out.println("commitid" + commit.commitID);
       //  System.out.println("parentid" + commit.parentsID);
@@ -155,19 +176,17 @@ public class Repository {
         System.out.println(commit.message);
         System.out.println();
     }
-    public static void globallog(){
+    public static void globallog(){//输出全部commit
         initGitlet("global-log");
         List<String> filelist = Utils.plainFilenamesIn(OBJECTS_DIR);
-        for (String filename:filelist//不知道如何从commit和blob中遍历来查找commit
-             ) {
-
+        for (String filename:filelist){   //不知道如何从commit和blob中遍历来查找commit
+            File commitfile = join(OBJECTS_DIR,filename);
+            Commit commit = readObject(commitfile, Commit.class);
+            printLog(commit);
         }
-
     }
     public static void status(){
         initGitlet("status");
-        AddStage addstage = readObject(ADDSTAGE,AddStage.class);
-        RemoveStage removestage = readObject(REMOVESTAGE,RemoveStage.class);
         System.out.println("=== Branches ===");
         printbranches(); //打印branches
         System.out.println("=== Staged Files ===");
@@ -179,6 +198,23 @@ public class Repository {
         System.out.println("=== Untracked Files ===");
         System.out.println();
     }
+    public static void find(String message){//根据commit message 输出 commitid
+        initGitlet("find");
+        boolean idExist = false;//是否存在 匹配的commit
+        List<String> filelist = Utils.plainFilenamesIn(OBJECTS_DIR);
+        for (String filename:filelist){     //遍历commit
+            File commitfile = join(OBJECTS_DIR,filename);
+            Commit commit = readObject(commitfile, Commit.class);
+            if (commit.message.equals(message)){
+                idExist = true;
+                System.out.println(commit.commitID);
+            }
+        }
+        if (!idExist){//如果 不存在 匹配commit
+            System.out.println("Found no commit with that message.");
+        }
+    }
+
     public static void printbranches(){
         List<String> filelist = Utils.plainFilenamesIn(HEADS_DIR);
         for (String filename:filelist) {//遍历heads文件夹
@@ -215,7 +251,7 @@ public class Repository {
         System.out.println("Date: " + commit.timeStamp);
         System.out.println(commit.message);
         System.out.println();
-        }else {
+        }else if(commit.parentsID.size() == 2) {
             System.out.println("===");
             System.out.println("commit " + commit.commitID);
             System.out.println("parentsize  " + commit.parentsID.size());
@@ -223,6 +259,12 @@ public class Repository {
             System.out.println("Date: " + commit.timeStamp);
             System.out.println(commit.message);
             System.out.println("Merged development into master.");
+            System.out.println();
+        }else {
+            System.out.println("===");
+            System.out.println("commit " + commit.commitID);
+            System.out.println("Date: " + commit.timeStamp);
+            System.out.println(commit.message);
             System.out.println();
         }
 
@@ -249,8 +291,8 @@ public class Repository {
             }
         }
     }
-    public static boolean blobExist(String blob){
-        File blobfile = join(OBJECTS_DIR, blob);
+    public static boolean blobExist(String blob){  //判断obje中是否有该blob
+        File blobfile = join(BLOB_DIR, blob);
         return blobfile.exists();
     }
 }

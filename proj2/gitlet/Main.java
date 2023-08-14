@@ -44,6 +44,14 @@ public class Main {
                 validateNumArgs(args,1);
                 Repository.status();
                 break;
+            case "global-log":
+                validateNumArgs(args,1);
+                Repository.globallog();
+                break;
+            case "find":
+                validateNumArgs(args,2);
+                Repository.find(args[1]);
+                break;
             // TODO: FILL THE REST IN
             default:  //如果改命令不是上面几个命令，输出....并exit；
                 System.out.println("No command with that name exists.");
