@@ -1,26 +1,48 @@
 # Gitlet Design Document
 
-**Name**:
+**Name**: carefreehaung
 
+---
 ## Classes and Data Structures
 
-### Class 1
+---
+### Main
 
 #### Fields
 
-1. Field 1
-2. Field 2
+1. main 程序执行主体
+2. validateNumArgs 判断参数是否对应 
 
 
-### Class 2
+### Commit
 
 #### Fields
 
-1. Field 1
-2. Field 2
+1. message -- commit 时的信息（string）
+2. parentsID -- 上一次的提交（id形式）
+3. date  -- 提交的日期
+4. commitID -- 自身的ID
+5. blobID -- 追踪文件内容，指向blob对象
 
+### Blob
 
+#### Fields
+
+1. fileName
+2. fileContent
+3. blobID
 ## Algorithms
 
+---
+
+
 ## Persistence
+
+---
+### git参考
+
+### gitlet 实现
+
+
+
 
