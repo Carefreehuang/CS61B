@@ -39,7 +39,7 @@ public class Repository {
     public static final File TREE = join(Repository.GITLET_DIR, "tree");
     public static final File MASTER = join(HEADS_DIR,"master");
     /* TODO: fill in the rest of this class. */
-    public static void init() throws IOException {
+    public static void init()  {
         initGitlet("init");
         GITLET_DIR.mkdir();  //创建基本目录
         OBJECTS_DIR.mkdir();
@@ -56,8 +56,17 @@ public class Repository {
         writeObject(initialCommitFile,initialCommit);  //生成commit文件
         tree.put(initialCommit.generateID(),initialCommitFile); //将commit map 到 tree
         tree.saveTree();//保存tree
-        Files.writeString(HEAD.toPath(),"master");
-        Files.writeString(MASTER.toPath(),initialCommit.generateID());
+        try {
+            Files.writeString(HEAD.toPath(),"master");
+        } catch (IOException e) {
+            e.printStackTrace(); // 打印异常信息
+        }
+        try {
+            Files.writeString(MASTER.toPath(),initialCommit.generateID());
+        } catch (IOException e) {
+            e.printStackTrace(); // 打印异常信息
+        }
+
         //writeObject(HEAD,initialCommit.generateID());//创建head，将head指向initcommit
         //writeObject(MASTER,initialCommit.generateID());//创建master，将master指向initcommit
     }
@@ -92,7 +101,7 @@ public class Repository {
         }
 
     }
-    public static void commit(String message) throws IOException {
+    public static void commit(String message) {
         initGitlet("commit");//判断是否init
         if (message.isBlank()){ //判断message是否为空
             System.out.println("Please enter a commit message.");
@@ -136,8 +145,16 @@ public class Repository {
         //branch出了问题！！！
 //        Files.writeString(HEAD.toPath(),commit.generateID());//更新head
 //        Files.writeString(MASTER.toPath(),commit.generateID());//跟新master，应该更新currentbranch而不是一味更新master
-        Files.writeString(join(HEADS_DIR,curretnBranch()).toPath(),commit.generateID());//跟新master
-        Files.writeString(HEAD.toPath(),curretnBranch());//更新head
+        try {
+            Files.writeString(join(HEADS_DIR,curretnBranch()).toPath(),commit.generateID());//跟新master
+        } catch (IOException e) {
+            e.printStackTrace(); // 打印异常信息
+        }
+        try {
+            Files.writeString(HEAD.toPath(),curretnBranch());//更新head
+        } catch (IOException e) {
+            e.printStackTrace(); // 打印异常信息
+        }
         //System.out.println(curretnBranch());
        // Files.writeString(join(HEADS_DIR,curretnBranch()).toPath(),commit.generateID());
         removestage.clear();
@@ -218,7 +235,7 @@ public class Repository {
         }
     }
 
-    public static void checkout(String[] args) throws IOException {
+    public static void checkout(String[] args){
         initGitlet("checkout");
         if (args.length == 3 && args[1].equals("--")){  //checkout -- [file name]
                 String filename = args[2];
@@ -262,16 +279,21 @@ public class Repository {
             System.exit(0);
         }
     }
-    public static void branch(String branchname) throws IOException {//创建分支
+    public static void branch(String branchname)  {//创建分支
         initGitlet("branch");
         if (fileContains(HEADS_DIR,branchname)){
             System.out.println("A branch with that name already exists.");
             System.exit(0);
         }
         File newbranchfile = join(HEADS_DIR,branchname);
-        Files.writeString(newbranchfile.toPath(),headID());//创建分支文件，里面保存当前headID
+        try {
+            Files.writeString(newbranchfile.toPath(),headID());//创建分支文件，里面保存当前headID
+        } catch (IOException e) {
+            e.printStackTrace(); // 打印异常信息
+        }
+
     }
-    public static void rmbranch(String branchname) throws IOException {//删除分支
+    public static void rmbranch(String branchname) {//删除分支
         initGitlet("rmbranch");
         if (!fileContains(HEADS_DIR,branchname)){  //如果不存在此分支
             System.out.println("A branch with that name does not exist.");
@@ -283,10 +305,14 @@ public class Repository {
             File file = join(HEADS_DIR,branchname);
             //System.out.println(file);
             //restrictedDelete(file);//删除分支文件,只能删除非隐藏目录的文件
-            Files.delete(file.toPath());
+            try {
+                Files.delete(file.toPath());
+            } catch (IOException e) {
+                e.printStackTrace(); // 打印异常信息
+            }
         }
     }
-    public static void reset(String commitID) throws IOException {
+    public static void reset(String commitID) {
         if (!fileContains(OBJECTS_DIR,commitID)){//如果不存在该commit
             System.out.println("No commit with that id exists.");
             System.exit(0);
@@ -309,14 +335,22 @@ public class Repository {
             for (String newtrackfile:newSet){
                 cwdGetFile(newcommit,newtrackfile);//写入文件到CWD
             }
-            Files.writeString((join(HEADS_DIR,curretnBranch()).toPath()), commitID);//修改当前的活动分支
-            Files.writeString(HEAD.toPath(),curretnBranch());//修改当前的活动分支
+            try {
+                Files.writeString((join(HEADS_DIR,curretnBranch()).toPath()), commitID);//修改当前的活动分支
+            } catch (IOException e) {
+                e.printStackTrace(); // 打印异常信息
+            }
+            try {
+                Files.writeString(HEAD.toPath(),curretnBranch());//修改当前的活动分支
+            } catch (IOException e) {
+                e.printStackTrace(); // 打印异常信息
+            }
             AddStage stage = readObject(ADDSTAGE,AddStage.class);
             stage.clear();
             stage.save();
         }
     }
-    public static void Trackerro(String branchname) throws IOException {//检测是否会有当前未追踪但是提取追踪的情况
+    public static void Trackerro(String branchname) {//检测是否会有当前未追踪但是提取追踪的情况
         Commit headcommit = headcommit();//返回headcommit
         String newcommitID = readContentsAsString(join(HEADS_DIR,branchname));//newbranch的ID
         Commit newcommit = readObject(join(OBJECTS_DIR,newcommitID), Commit.class);//获取newcommit
@@ -336,12 +370,20 @@ public class Repository {
         for (String newtrackfile:newSet){
             cwdGetFile(newcommit,newtrackfile);//写入文件到CWD
         }
-        Files.writeString(HEAD.toPath(),branchname);//修改当前的活动分支
+        try {
+            Files.writeString(HEAD.toPath(),branchname);//修改当前的活动分支
+        } catch (IOException e) {
+            e.printStackTrace(); // 打印异常信息
+        }
     }
     public static void merge(String branchname){
         initGitlet("merge");
 
     }
+    public static void splitpoint(String branchname){
+
+    }
+
 
     public static String curretnBranch(){  //返回当前branch名
 //        List<String> filelist = Utils.plainFilenamesIn(HEADS_DIR);
@@ -354,11 +396,16 @@ public class Repository {
 //        return null;
         return readContentsAsString(HEAD);
     }
-    public static void cwdGetFile(Commit commit ,String filename) throws IOException {//添加commit中的指定file到CWD
+    public static void cwdGetFile(Commit commit ,String filename)  {//添加commit中的指定file到CWD
         File blobfile = commit.blobID.get(filename);//获取blobfile
         Blob blob = readObject(blobfile, Blob.class);//获取blob
         File newfile = join(CWD,blob.fileName);//创建blob.filename为名字的文件到CWD
-        Files.writeString(newfile.toPath(), blob.fileContent);//将filecontent写入文件，并产生文件
+        try {
+            Files.writeString(newfile.toPath(), blob.fileContent);//将filecontent写入文件，并产生文件
+        } catch (IOException e) {
+            e.printStackTrace(); // 打印异常信息
+        }
+
     }
     public static boolean fileContains(File FILE,String filename){    //判断该目录下是否存在该文件名
         List<String> filelist = Utils.plainFilenamesIn(FILE);
