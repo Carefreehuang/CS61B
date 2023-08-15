@@ -30,7 +30,7 @@ public class Commit implements Serializable {
     public String timeStamp; //时间戳
     public List<String> parentsID;//父提交的ID
     //public Hashtable<String,File> blobID; //指向的blob对象
-    public Hashtable<String,File> blobID;  //存储 blob对象 ——> 追踪文件名的映射
+    public Hashtable<String,File> blobID;  //存储 blob对象 ——> 追踪文件名的映射 文件名，文件File（存在BLOB/blobID）
     public String commitID;
     /* TODO: fill in the rest of this class. */
     public Commit(String message, Date date){

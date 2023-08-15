@@ -4,8 +4,8 @@ import java.io.Serializable;
 
 
 public class Blob implements Serializable {
-    private String fileName;
-    private String fileContent;
+    public String fileName;
+    public String fileContent;
     private String blobID;
     public String generateID(){  //生成ID
         return Utils.sha1(this.fileName, this.fileContent);

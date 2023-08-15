@@ -32,8 +32,7 @@ public class Repository {
     public static final File GITLET_DIR = join(CWD, ".gitlet");
     public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");//存储commit对象
     public static final File BLOB_DIR = join(GITLET_DIR,"blob"); //存储blob
-    public static final File REFS_DIR = join(GITLET_DIR, "refs");
-    public static final File HEADS_DIR = join(REFS_DIR, "heads");
+    public static final File HEADS_DIR = join(GITLET_DIR, "heads");
     public static final File ADDSTAGE = join(GITLET_DIR, "addstage");
     public static final File REMOVESTAGE = join(GITLET_DIR, "removestage");
     public static final File HEAD = join(GITLET_DIR, "head");
@@ -44,7 +43,6 @@ public class Repository {
         initGitlet("init");
         GITLET_DIR.mkdir();  //创建基本目录
         OBJECTS_DIR.mkdir();
-        REFS_DIR.mkdir();
         HEADS_DIR.mkdir();
         BLOB_DIR.mkdir();
         AddStage addstage = new AddStage();
@@ -58,7 +56,7 @@ public class Repository {
         writeObject(initialCommitFile,initialCommit);  //生成commit文件
         tree.put(initialCommit.generateID(),initialCommitFile); //将commit map 到 tree
         tree.saveTree();//保存tree
-        Files.writeString(HEAD.toPath(),initialCommit.generateID());
+        Files.writeString(HEAD.toPath(),"master");
         Files.writeString(MASTER.toPath(),initialCommit.generateID());
         //writeObject(HEAD,initialCommit.generateID());//创建head，将head指向initcommit
         //writeObject(MASTER,initialCommit.generateID());//创建master，将master指向initcommit
@@ -135,8 +133,13 @@ public class Repository {
         Tree tree = readObject(TREE,Tree.class);//生成tree
         tree.put(commit.generateID(),commitfile);
         tree.saveTree();
-        Files.writeString(HEAD.toPath(),commit.generateID());//更新head
-        Files.writeString(MASTER.toPath(),commit.generateID());//跟新master
+        //branch出了问题！！！
+//        Files.writeString(HEAD.toPath(),commit.generateID());//更新head
+//        Files.writeString(MASTER.toPath(),commit.generateID());//跟新master，应该更新currentbranch而不是一味更新master
+        Files.writeString(join(HEADS_DIR,curretnBranch()).toPath(),commit.generateID());//跟新master
+        Files.writeString(HEAD.toPath(),curretnBranch());//更新head
+        //System.out.println(curretnBranch());
+       // Files.writeString(join(HEADS_DIR,curretnBranch()).toPath(),commit.generateID());
         removestage.clear();
         removestage.save();
         stage.clear();//清空stage；
@@ -215,6 +218,152 @@ public class Repository {
         }
     }
 
+    public static void checkout(String[] args) throws IOException {
+        initGitlet("checkout");
+        if (args.length == 3 && args[1].equals("--")){  //checkout -- [file name]
+                String filename = args[2];
+                Commit headcommit = headcommit();
+                if (!headcommit.blobID.containsKey(filename)){//如果head中没有该文件名
+                    System.out.println("File does not exist in that commit.");
+                    System.exit(0);
+                }else {
+                    cwdGetFile(headcommit,filename);//将headcommit中的指定file添加到CWD
+                }
+        } else if (args.length == 4 && args[2].equals("--")) {  //checkout [commit id] -- [file name]
+            String commitID = args[1];
+            String filename = args [3];
+            if (!fileContains(OBJECTS_DIR,commitID)){//如果不存在该commit
+                System.out.println("No commit with that id exists.");
+                System.exit(0);
+            }else {//存在commit
+                Commit commit = readObject(join(OBJECTS_DIR,commitID), Commit.class);//获取指定commit
+                if (!commit.blobID.containsKey(filename)){//如果commit不包含该文件名
+                    System.out.println("File does not exist in that commit.");
+                    System.exit(0);
+                }else {
+                    cwdGetFile(commit,filename);//将commit中的指定file添加到CWD
+                }
+            }
+        } else if (args.length == 2) {  //checkout [branch name]
+            String branchname = args[1];
+            if (!fileContains(HEADS_DIR, branchname)){//如果branch不存在
+                System.out.println("No such branch exists.");
+                System.exit(0);
+            }else {
+                if (curretnBranch().equals(branchname)){//branchname是当前branch
+                    System.out.println("No need to checkout the current branch.");
+                    System.exit(0);
+                }else {//分情况讨论
+                    Trackerro(branchname);
+                }
+            }
+        }else {
+            System.out.println("Incorrect operands.");
+            System.exit(0);
+        }
+    }
+    public static void branch(String branchname) throws IOException {//创建分支
+        initGitlet("branch");
+        if (fileContains(HEADS_DIR,branchname)){
+            System.out.println("A branch with that name already exists.");
+            System.exit(0);
+        }
+        File newbranchfile = join(HEADS_DIR,branchname);
+        Files.writeString(newbranchfile.toPath(),headID());//创建分支文件，里面保存当前headID
+    }
+    public static void rmbranch(String branchname) throws IOException {//删除分支
+        initGitlet("rmbranch");
+        if (!fileContains(HEADS_DIR,branchname)){  //如果不存在此分支
+            System.out.println("A branch with that name does not exist.");
+            System.exit(0);
+        }else if (branchname.equals(curretnBranch())){//如果删除当前分支
+            System.out.println("Cannot remove the current branch.");
+            System.exit(0);
+        }else {
+            File file = join(HEADS_DIR,branchname);
+            //System.out.println(file);
+            //restrictedDelete(file);//删除分支文件,只能删除非隐藏目录的文件
+            Files.delete(file.toPath());
+        }
+    }
+    public static void reset(String commitID) throws IOException {
+        if (!fileContains(OBJECTS_DIR,commitID)){//如果不存在该commit
+            System.out.println("No commit with that id exists.");
+            System.exit(0);
+        }else {
+            Commit headcommit = headcommit();//获取headcommit
+            Commit newcommit = readObject(join(OBJECTS_DIR,commitID), Commit.class);//获取newcommit
+            Set<String> headSet= headcommit.blobID.keySet(); //当前headcommit所有的追踪文件的set
+            Set<String> newSet = newcommit.blobID.keySet(); //当前newcommit所有的追踪文件的set
+            for (String newtrackfile:newSet){//但前commit未追踪，提取的追踪了，并且cwd中有该文件要覆盖
+                if (!headSet.contains(newtrackfile) && fileContains(CWD,newtrackfile)){
+                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                    System.exit(0);
+                }
+            }
+            for (String headtrackfile:headSet){
+                if (!newSet.contains(headtrackfile)){//如果提取的追踪不包含当前的追踪
+                    restrictedDelete(join(CWD,headtrackfile));//如果当前目录有该文件，则删除head追踪的文件
+                }
+            }
+            for (String newtrackfile:newSet){
+                cwdGetFile(newcommit,newtrackfile);//写入文件到CWD
+            }
+            Files.writeString((join(HEADS_DIR,curretnBranch()).toPath()), commitID);//修改当前的活动分支
+            Files.writeString(HEAD.toPath(),curretnBranch());//修改当前的活动分支
+            AddStage stage = readObject(ADDSTAGE,AddStage.class);
+            stage.clear();
+            stage.save();
+        }
+    }
+    public static void Trackerro(String branchname) throws IOException {//检测是否会有当前未追踪但是提取追踪的情况
+        Commit headcommit = headcommit();//返回headcommit
+        String newcommitID = readContentsAsString(join(HEADS_DIR,branchname));//newbranch的ID
+        Commit newcommit = readObject(join(OBJECTS_DIR,newcommitID), Commit.class);//获取newcommit
+        Set<String> headSet= headcommit.blobID.keySet(); //当前headcommit所有的追踪文件的set
+        Set<String> newSet = newcommit.blobID.keySet(); //当前newcommit所有的追踪文件的set
+        for (String newtrackfile:newSet){//但前commit未追踪，提取的追踪了，并且cwd中有该文件要覆盖
+            if (!headSet.contains(newtrackfile) && fileContains(CWD,newtrackfile)){
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+        }
+        for (String headtrackfile:headSet){
+            if (!newSet.contains(headtrackfile)){//如果提取的追踪不包含当前的追踪
+                restrictedDelete(join(CWD,headtrackfile));//如果当前目录有该文件，则删除head追踪的文件
+            }
+        }
+        for (String newtrackfile:newSet){
+            cwdGetFile(newcommit,newtrackfile);//写入文件到CWD
+        }
+        Files.writeString(HEAD.toPath(),branchname);//修改当前的活动分支
+    }
+    public static String curretnBranch(){  //返回当前branch名
+//        List<String> filelist = Utils.plainFilenamesIn(HEADS_DIR);
+//        for (String filename:filelist) {//遍历heads文件夹
+//            File file = join(HEADS_DIR,filename);//当前file
+//            if (readContentsAsString(file).equals(headID())){//如果head内容等于此分支内容，即找到主分支
+//                return filename;
+//            }
+//        }
+//        return null;
+        return readContentsAsString(HEAD);
+    }
+    public static void cwdGetFile(Commit commit ,String filename) throws IOException {//添加commit中的指定file到CWD
+        File blobfile = commit.blobID.get(filename);//获取blobfile
+        Blob blob = readObject(blobfile, Blob.class);//获取blob
+        File newfile = join(CWD,blob.fileName);//创建blob.filename为名字的文件到CWD
+        Files.writeString(newfile.toPath(), blob.fileContent);//将filecontent写入文件，并产生文件
+    }
+    public static boolean fileContains(File FILE,String filename){    //判断该目录下是否存在该文件名
+        List<String> filelist = Utils.plainFilenamesIn(FILE);
+        for (String file:filelist){
+            if (file.equals(filename)){
+                return true;
+            }
+        }
+        return false;
+    }
     public static void printbranches(){
         List<String> filelist = Utils.plainFilenamesIn(HEADS_DIR);
         for (String filename:filelist) {//遍历heads文件夹
@@ -270,7 +419,7 @@ public class Repository {
 
     }
     public static String headID(){
-        return readContentsAsString(HEAD);
+        return readContentsAsString(join(HEADS_DIR,readContentsAsString(HEAD)));
     }
     public static Commit headcommit(){ //返回头节点指向的commit
         File headcommitfile = join(OBJECTS_DIR,headID());
