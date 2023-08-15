@@ -338,6 +338,11 @@ public class Repository {
         }
         Files.writeString(HEAD.toPath(),branchname);//修改当前的活动分支
     }
+    public static void merge(String branchname){
+        initGitlet("merge");
+
+    }
+
     public static String curretnBranch(){  //返回当前branch名
 //        List<String> filelist = Utils.plainFilenamesIn(HEADS_DIR);
 //        for (String filename:filelist) {//遍历heads文件夹

@@ -67,6 +67,10 @@ public class Main {
                 validateNumArgs(args,2);
                 Repository.reset(args[1]);
                 break;
+            case "merge":
+                validateNumArgs(args,2);
+                Repository.merge(args[1]);
+            break;
             // TODO: FILL THE REST IN
             default:  //如果改命令不是上面几个命令，输出....并exit；
                 System.out.println("No command with that name exists.");
