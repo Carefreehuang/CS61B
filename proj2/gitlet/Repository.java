@@ -3,6 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StreamCorruptedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -378,10 +379,167 @@ public class Repository {
     }
     public static void merge(String branchname){
         initGitlet("merge");
+        String splitcommitID = splitpoint(branchname);
+        Commit splitcommit = getcommit(splitpoint(branchname));
+        if (splitcommitID.equals(headID())){//如果分割点就是当前head
+            try {
+                Files.writeString(HEAD.toPath(),readContentsAsString(join(HEADS_DIR,branchname)));//更新head至该branch
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("Current branch fast-forwarded");
+            System.exit(0);
+        } else if (splitcommitID.equals(readContentsAsString(join(HEADS_DIR,branchname)))) {//如果分割点等于给定分支
+            System.out.println("Given branch is an ancestor of the current branch");
+            System.exit(0);
+        }else {
+            String currentbranchname = readContentsAsString(HEAD);
+            String message = "Merged " + branchname +" into " + currentbranchname;
+            Commit mergecommit = new Commit(message,new Date());
+            Commit headcommit =headcommit();
+            Commit branchcommit = getcommit(readContentsAsString(join(HEADS_DIR,branchname)));  //获取指定commit
+            Set<String> hset = headcommit.blobID.keySet();
+            Set<String> sset = splitcommit.blobID.keySet();
+            Set<String> bset = branchcommit.blobID.keySet();
+            TreeMap<String,File> allmap = new TreeMap<>();//保存所有
+            Set<String> fileset = fileset(mergecommit, headcommit, branchcommit);//三个commit追踪的所有的文件
+            for (String filename : fileset){
+                if (!sset.contains(filename)){//sset未追踪
+                    if (hset.contains(filename) && bset.contains(filename)){//h和b都包含
+                        if (headcommit.blobID.get(filename).equals(branchcommit.blobID.get(filename))){
+                            mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
+                        }else {//h！= b   冲突
+                            conflict(filename,headcommit,branchcommit);
+                        }
+                    } else {//都不包含，或者 一个包含一个不包含
+                        if (hset.contains(filename)){
+                            mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
+                        } else if (bset.contains(filename)) {
+                            mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
+                        }
+                    }
+                }else {//sset已追踪
+                    if (hset.contains(filename)){ //h追踪
+                        if (bset.contains(filename)){ //b追踪
+                            if (headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && !branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))){
+                                //h = s,b != s
+                                mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
+                            }
+                            if (!headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))) {
+                                //h != s,b = s
+                                mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
+                            }
+                            if (!headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && !branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))) {
+                                //h != s,b != s
+                                conflict(filename,headcommit,branchcommit);
+                            }
+                        }
+                    } else { //h不追踪
+                        if (bset.contains(filename)){//b追踪
+                            if (!branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)))
+                                //b != s
+                                mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
+                        }
+                    }
+                }
+            }
+
+
+                for (String filename:splitcommit.blobID.keySet()) {//遍历split追踪的所有文件
+                    if (headcommit.blobID.containsKey(filename)){//head 追踪此文件
+                        if (!branchcommit.blobID.containsKey(filename)){//branch不追踪,不添加金mergecommit
+                        }else {//如果branch追踪
+                            if (headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && !branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))){//如果head和split追踪的blob相同,branch不同
+                                mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));//将branch的追踪 添加进mergecommit
+                            }else if (!headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))){ // head不同，branch同
+                                mergecommit.blobID.put(filename,headcommit.blobID.get(filename));//添加head
+                            }else if (!headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && !branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))){  //两者都不等于
+
+                            }
+
+                        }
+                    }
+                }
+                File branchpointfile = join(HEADS_DIR,branchname);
+                mergecommit.parentsID.add(headID());//给merge设定parents
+                mergecommit.parentsID.add(readContentsAsString(branchpointfile));
+                mergecommit.commitID = mergecommit.generateID();
+                writeObject(join(OBJECTS_DIR,mergecommit.commitID), mergecommit);
+            try {
+                Files.writeString(branchpointfile.toPath(),mergecommit.commitID);//更新分支
+                Files.writeString(HEAD.toPath(),branchname);//更新head
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            reset(mergecommit.commitID);
+        }
 
     }
-    public static void splitpoint(String branchname){
+    public static void conflict(String filename,Commit headcommit,Commit branchcommit){
 
+    }
+    public static void addset( Set<String> fileset, Commit commit){//添加追踪文件名
+        for (String filename : commit.blobID.keySet()){
+                if ( !fileset.contains(filename) ){
+                    fileset.add(filename);
+                }
+        }
+    }
+    public static Set<String> fileset(Commit commit1,Commit commit2,Commit commit3){//生成所有追踪文件的set
+        Set<String> fileset = new TreeSet<>();
+        addset(fileset, commit1);
+        addset(fileset, commit2);
+        addset(fileset, commit3);
+        return fileset;
+    }
+    public static String splitpoint(String branchename){//找到splitpoint
+        String newcommitID = readContentsAsString(join(HEADS_DIR,branchename));
+        TreeMap<String,Integer> oldmap = commitBFS(headcommit());//映射,commitID,距离initial距离  本身的映射
+        TreeMap<String,Integer> newmap = commitBFS(getcommit(newcommitID));//映射,commitID,距离initial距离   新指定的映射
+        int minidistance = 99999999;//设立大数用做比较
+        String minicommitID = newcommitID;
+        for (String key:oldmap.keySet()) {//遍历oldmap
+            if (newmap.containsKey(key) && oldmap.get(key) < minidistance){
+                    minidistance = oldmap.get(key);
+                    minicommitID = key;
+            }
+        }
+        return minicommitID;
+    }
+    public static Commit getcommit(String commitID){//返回指定commit
+        //System.out.println(commitID);
+        return readObject(join(OBJECTS_DIR,commitID),Commit.class);
+    }
+    public static List<Commit> adjcommit(Commit commit){//返回一个commit的相邻commit，即commit的parentcommit
+        List<Commit> adjcommit = new ArrayList<>();
+        for (String parentID: commit.parentsID) {
+            adjcommit.add(getcommit(parentID));
+        }
+        return adjcommit;
+    }
+    public static TreeMap<String,Integer> commitBFS(Commit commit){//用bfs遍历，存储所有到该commit的<commitID, distance>
+        TreeMap<String,Integer>  map = new TreeMap<>();//存储commitID与该分支的距离
+        //int distence = 0;//距离 最初的 距离
+        ArrayDeque<Commit> deque = new ArrayDeque<>();  //存放commit
+        List<String> visit = new ArrayList<>();  //判断commit是否被访问过
+        deque.add(commit);//入队
+        visit.add(commit.commitID);//添加至已访问列表
+        map.put(commit.commitID, 0);
+        while( !deque.isEmpty() ){
+            Commit currentcommit = deque.remove();
+            for (String adjcommitID : currentcommit.parentsID){
+                if (!visit.contains(adjcommitID)){//如果未被访问
+                    visit.add(adjcommitID);//标记为访问
+                    deque.add(getcommit(adjcommitID));//入队
+                    map.put(adjcommitID,map.get(currentcommit.commitID) + 1 );
+                    if (getcommit(adjcommitID).message.equals("initial commit")){
+                       //判断是否到initialcommit
+                        return map;
+                    }
+                }
+            }
+        }
+        return map;
     }
 
 
