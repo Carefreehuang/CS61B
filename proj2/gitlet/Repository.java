@@ -366,6 +366,7 @@ public class Repository {
         for (String headtrackfile:headSet){
             if (!newSet.contains(headtrackfile)){//如果提取的追踪不包含当前的追踪
                 restrictedDelete(join(CWD,headtrackfile));//如果当前目录有该文件，则删除head追踪的文件
+                //System.out.println("删了没");
             }
         }
         for (String newtrackfile:newSet){
@@ -377,11 +378,12 @@ public class Repository {
             e.printStackTrace(); // 打印异常信息
         }
     }
-    public static void merge(String branchname){
+    public static void merge1(String branchname){
         initGitlet("merge");
         String splitcommitID = splitpoint(branchname);
         Commit splitcommit = getcommit(splitpoint(branchname));
-        if (splitcommitID.equals(headID())){//如果分割点就是当前head
+        //System.out.println(splitcommitID);
+        if (splitcommitID.equals(headID())){//如果分割点就是当前分支
             try {
                 Files.writeString(HEAD.toPath(),readContentsAsString(join(HEADS_DIR,branchname)));//更新head至该branch
             } catch (IOException e) {
@@ -411,11 +413,13 @@ public class Repository {
                         }else {//h！= b   冲突
                             conflict(filename,headcommit,branchcommit);
                         }
-                    } else {//都不包含，或者 一个包含一个不包含
+                    } else {//都不包含，或者 一个包含一个不包含   s，b无，h有
                         if (hset.contains(filename)){
                             mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
-                        } else if (bset.contains(filename)) {
+                            restrictedDelete(join(CWD,filename));
+                        } else if (bset.contains(filename)) { //s，h无，b有
                             mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
+                            cwdGetFile(branchcommit,filename);//添加文件
                         }
                     }
                 }else {//sset已追踪
@@ -424,6 +428,7 @@ public class Repository {
                             if (headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && !branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))){
                                 //h = s,b != s
                                 mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
+                                cwdGetFile(branchcommit,filename);//添加文件
                             }
                             if (!headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))) {
                                 //h != s,b = s
@@ -433,18 +438,24 @@ public class Repository {
                                 //h != s,b != s
                                 conflict(filename,headcommit,branchcommit);
                             }
+                        }else { //b不追踪
+                            restrictedDelete(join(CWD,filename));
                         }
                     } else { //h不追踪
                         if (bset.contains(filename)){//b追踪
                             if (!branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)))
                                 //b != s
                                 mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
+                            cwdGetFile(branchcommit,filename);
+                        }
+                        else {
+                            //33 没进来
+                            //restrictedDelete(join(CWD,"f.txt"));
+                            restrictedDelete(join(CWD,"f.txt"));
                         }
                     }
                 }
             }
-
-
                 for (String filename:splitcommit.blobID.keySet()) {//遍历split追踪的所有文件
                     if (headcommit.blobID.containsKey(filename)){//head 追踪此文件
                         if (!branchcommit.blobID.containsKey(filename)){//branch不追踪,不添加金mergecommit
@@ -471,9 +482,8 @@ public class Repository {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            reset(mergecommit.commitID);
         }
-
+        //checkout(new String[]{branchname});
     }
     public static void conflict(String filename,Commit headcommit,Commit branchcommit){
 
@@ -613,11 +623,11 @@ public class Repository {
         }else if(commit.parentsID.size() == 2) {
             System.out.println("===");
             System.out.println("commit " + commit.commitID);
-            System.out.println("parentsize  " + commit.parentsID.size());
+            //System.out.println("parentsize  " + commit.parentsID.size());
             System.out.println("Merge " + commit.parentsID.get(0) + " " + commit.parentsID.get(1));//parentsize怎么会是0呢
             System.out.println("Date: " + commit.timeStamp);
             System.out.println(commit.message);
-            System.out.println("Merged development into master.");
+            //System.out.println("Merged development into master.");
             System.out.println();
         }else {
             System.out.println("===");
