@@ -474,7 +474,7 @@ public class Repository {
 //            } catch (IOException e) {
 //                throw new RuntimeException(e);
 //            }
-            commit(message);
+           // commit(message);
         }
         //checkout(new String[]{branchname});
     }
