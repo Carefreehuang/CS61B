@@ -445,8 +445,8 @@ public class Repository {
                                 conflict(filename,headcommit,branchcommit);
                             }
                         }else { //b不追踪
-                            //restrictedDelete(join(CWD,filename));
-                            rm(filename);//取消追踪
+                            restrictedDelete(join(CWD,filename));
+                            //rm(filename);//取消追踪
                         }
                     } else { //h不追踪
                         if (bset.contains(filename)){//b追踪
@@ -474,7 +474,7 @@ public class Repository {
 //            } catch (IOException e) {
 //                throw new RuntimeException(e);
 //            }
-           // commit(message);
+            //commit(message);
         }
         //checkout(new String[]{branchname});
     }
