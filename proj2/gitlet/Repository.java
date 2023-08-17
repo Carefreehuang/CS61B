@@ -378,7 +378,8 @@ public class Repository {
             e.printStackTrace(); // 打印异常信息
         }
     }
-    public static void merge1(String branchname){
+
+    public static void merge(String branchname){
         initGitlet("merge");
         String splitcommitID = splitpoint(branchname);
         Commit splitcommit = getcommit(splitpoint(branchname));
