@@ -410,17 +410,21 @@ public class Repository {
                 if (!sset.contains(filename)){//sset未追踪
                     if (hset.contains(filename) && bset.contains(filename)){//h和b都包含
                         if (headcommit.blobID.get(filename).equals(branchcommit.blobID.get(filename))){
-                            mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
+                            if (!fileContains(CWD,filename)){ //cwd包含则不动，不包含则添加至cwd
+                                cwdGetFile(headcommit,filename);
+                            }
+                            //mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
                         }else {//h！= b   冲突
                             conflict(filename,headcommit,branchcommit);
                         }
                     } else {//都不包含，或者 一个包含一个不包含   s，b无，h有
                         if (hset.contains(filename)){
-                            mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
-                            restrictedDelete(join(CWD,filename));
+                            //mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
+                            //restrictedDelete(join(CWD,filename));
                         } else if (bset.contains(filename)) { //s，h无，b有
-                            mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
+                            //mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
                             cwdGetFile(branchcommit,filename);//添加文件
+                            add(filename);//添加至暂存区
                         }
                     }
                 }else {//sset已追踪
@@ -428,61 +432,49 @@ public class Repository {
                         if (bset.contains(filename)){ //b追踪
                             if (headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && !branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))){
                                 //h = s,b != s
-                                mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
+                                //mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
                                 cwdGetFile(branchcommit,filename);//添加文件
+                                add(filename);
                             }
                             if (!headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))) {
                                 //h != s,b = s
-                                mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
+                                //mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
                             }
                             if (!headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && !branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))) {
                                 //h != s,b != s
                                 conflict(filename,headcommit,branchcommit);
                             }
                         }else { //b不追踪
-                            restrictedDelete(join(CWD,filename));
+                            //restrictedDelete(join(CWD,filename));
+                            rm(filename);//取消追踪
                         }
                     } else { //h不追踪
                         if (bset.contains(filename)){//b追踪
                             if (!branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)))
                                 //b != s
-                                mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
-                            cwdGetFile(branchcommit,filename);
+                                //mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
+                                cwdGetFile(branchcommit,filename);
                         }
                         else {
                             //33 没进来
                             //restrictedDelete(join(CWD,"f.txt"));
-                            restrictedDelete(join(CWD,"f.txt"));
+                            restrictedDelete(join(CWD,filename));
                         }
                     }
                 }
             }
-                for (String filename:splitcommit.blobID.keySet()) {//遍历split追踪的所有文件
-                    if (headcommit.blobID.containsKey(filename)){//head 追踪此文件
-                        if (!branchcommit.blobID.containsKey(filename)){//branch不追踪,不添加金mergecommit
-                        }else {//如果branch追踪
-                            if (headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && !branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))){//如果head和split追踪的blob相同,branch不同
-                                mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));//将branch的追踪 添加进mergecommit
-                            }else if (!headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))){ // head不同，branch同
-                                mergecommit.blobID.put(filename,headcommit.blobID.get(filename));//添加head
-                            }else if (!headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && !branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))){  //两者都不等于
-
-                            }
-
-                        }
-                    }
-                }
-                File branchpointfile = join(HEADS_DIR,branchname);
-                mergecommit.parentsID.add(headID());//给merge设定parents
-                mergecommit.parentsID.add(readContentsAsString(branchpointfile));
-                mergecommit.commitID = mergecommit.generateID();
-                writeObject(join(OBJECTS_DIR,mergecommit.commitID), mergecommit);
-            try {
-                Files.writeString(branchpointfile.toPath(),mergecommit.commitID);//更新分支
-                Files.writeString(HEAD.toPath(),branchname);//更新head
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+//                File branchpointfile = join(HEADS_DIR,branchname);
+//                mergecommit.parentsID.add(headID());//给merge设定parents
+//                mergecommit.parentsID.add(readContentsAsString(branchpointfile));
+//                mergecommit.commitID = mergecommit.generateID();
+//                writeObject(join(OBJECTS_DIR,mergecommit.commitID), mergecommit);
+//            try {
+//                Files.writeString(branchpointfile.toPath(),mergecommit.commitID);//更新分支
+//                Files.writeString(HEAD.toPath(),branchname);//更新head
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+            commit(message);
         }
         //checkout(new String[]{branchname});
     }
