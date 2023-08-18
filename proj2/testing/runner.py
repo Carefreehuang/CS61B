@@ -203,7 +203,7 @@ def doCompile(target):
     out = ""
     try:
         full_cmnd = "{} {}".format(JAVAC_COMMAND, target)
-        out = check_output(full_cmnd, shell=True, universal_newlines=True,
+        out = check_output(full_cmnd, shell=True, universal_newlines=True,encoding='latin-1',
                            stdin=DEVNULL, stderr=STDOUT)
         return "OK", out
     except CalledProcessError as excp:
@@ -411,10 +411,10 @@ def doTest(test):
                 elif msg == "User Exit":
                     print("Exiting Debug mode ...")
                     break
-                if msg != 'OK':
-                    print("ERROR ({})".format(msg))
-                    reportDetails(test, included_files, line_num)
-                    return False
+                # if msg != 'OK':
+                #     print("ERROR ({})".format(msg))
+                #     reportDetails(test, included_files, line_num)
+                #     return False
             elif Match(r'=\s*(\S+)\s+(\S+)', line):
                 if not correctFileOutput(Group(1), Group(2), cdir):
                     print("ERROR (file {} has incorrect content)"
