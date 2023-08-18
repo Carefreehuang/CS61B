@@ -55,7 +55,6 @@ public class Commit implements Serializable {
         Commit commit = new Commit(message, new Date());
         commit.blobID = parentCommit.blobID;
         commit.parentsID.add(parentCommit.commitID);
-
         return commit;
     }
 
