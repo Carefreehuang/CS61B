@@ -1,7 +1,6 @@
 package gitlet;
 
 // TODO: any imports you need here
-
 import java.io.File;
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -25,13 +24,13 @@ public class Commit implements Serializable {
      * variable is used. We've provided one example for `message`.
      */
 
-    public String message; // 提交信息
-    public Date currentTime; //当前时间
-    public String timeStamp; //时间戳
-    public List<String> parentsID;//父提交的ID
-    //public Hashtable<String,File> blobID; //指向的blob对象
-    public Hashtable<String,File> blobID;  //存储 blob对象 ——> 追踪文件名的映射 文件名，文件File（存在BLOB/blobID）
+    public String message; // Commit message
+    public Date currentTime; // Current time
+    public String timeStamp; // Time stamp
+    public List<String> parentsID; // IDs of parent commits
+    public Hashtable<String, File> blobID;
     public String commitID;
+
     /* TODO: fill in the rest of this class. */
     public Commit(String message, Date date){
         this.message = message;
@@ -42,25 +41,26 @@ public class Commit implements Serializable {
     }
 
     public String generateID(){
-        return Utils.sha1(message,timeStamp,parentsID.toString(),blobID.toString());
+        return Utils.sha1(message, timeStamp, parentsID.toString(), blobID.toString());
     }
+
     private static String dateToTimeStamp(Date date) {
         DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z", Locale.US);
         return dateFormat.format(date);
     }
-    public static Commit copyParent(String message, Date date){//从parent生成commit
+
+    public static Commit copyParent(String message, Date date){
         Tree tree = Utils.readObject(Repository.TREE, Tree.class);
-        Commit parentCommit = Repository.headcommit();//获取parentcommit
+        Commit parentCommit = Repository.headcommit();
         Commit commit = new Commit(message, new Date());
         commit.blobID = parentCommit.blobID;
-        //System.out.println("add前" + commit.parentsID.size());
         commit.parentsID.add(parentCommit.commitID);
-        //System.out.println("add后" + commit.parentsID.size());
+
         return commit;
     }
-    public Commit returnParent(){//返回第一个父commit
-        File parentfile = join(Repository.OBJECTS_DIR,this.parentsID.get(0));
-        return Utils.readObject(parentfile,Commit.class);
-    }
 
+    public Commit returnParent(){ // Return the first parent commit
+        File parentfile = join(Repository.OBJECTS_DIR, this.parentsID.get(0));
+        return Utils.readObject(parentfile, Commit.class);
+    }
 }
