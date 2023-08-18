@@ -31,8 +31,8 @@ public class Repository {
     public static final File CWD = new File(System.getProperty("user.dir"));
     /** The .gitlet directory. */
     public static final File GITLET_DIR = join(CWD, ".gitlet");
-    public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");//´æ´¢commit¶ÔÏó
-    public static final File BLOB_DIR = join(GITLET_DIR,"blob"); //´æ´¢blob
+    public static final File OBJECTS_DIR = join(GITLET_DIR, "objects");//å­˜å‚¨commitå¯¹è±¡
+    public static final File BLOB_DIR = join(GITLET_DIR,"blob"); //å­˜å‚¨blob
     public static final File HEADS_DIR = join(GITLET_DIR, "heads");
     public static final File ADDSTAGE = join(GITLET_DIR, "addstage");
     public static final File REMOVESTAGE = join(GITLET_DIR, "removestage");
@@ -42,7 +42,7 @@ public class Repository {
     /* TODO: fill in the rest of this class. */
     public static void init()  {
         initGitlet("init");
-        GITLET_DIR.mkdir();  //´´½¨»ù±¾Ä¿Â¼
+        GITLET_DIR.mkdir();  //åˆ›å»ºåŸºæœ¬ç›®å½•
         OBJECTS_DIR.mkdir();
         HEADS_DIR.mkdir();
         BLOB_DIR.mkdir();
@@ -50,51 +50,51 @@ public class Repository {
         Utils.writeObject(ADDSTAGE,addstage);
         RemoveStage removestage = new RemoveStage();
         Utils.writeObject(REMOVESTAGE,removestage);
-        Tree tree = new Tree();  //Éú³É±£´æÎÄ¼şµÄÊ÷
-        Commit initialCommit = new Commit("initial commit",new Date(0));  //Éú³Éinitialcommit
-        initialCommit.commitID = initialCommit.generateID();//¸ø³õÊ¼½ÚµãÌí¼Ó×ÔÉíID
-        File initialCommitFile = new File(OBJECTS_DIR,initialCommit.generateID());  //ÒÔID±£´æcommitÎÄ¼ş
-        writeObject(initialCommitFile,initialCommit);  //Éú³ÉcommitÎÄ¼ş
-        tree.put(initialCommit.generateID(),initialCommitFile); //½«commit map µ½ tree
-        tree.saveTree();//±£´ætree
+        Tree tree = new Tree();  //ç”Ÿæˆä¿å­˜æ–‡ä»¶çš„æ ‘
+        Commit initialCommit = new Commit("initial commit",new Date(0));  //ç”Ÿæˆinitialcommit
+        initialCommit.commitID = initialCommit.generateID();//ç»™åˆå§‹èŠ‚ç‚¹æ·»åŠ è‡ªèº«ID
+        File initialCommitFile = new File(OBJECTS_DIR,initialCommit.generateID());  //ä»¥IDä¿å­˜commitæ–‡ä»¶
+        writeObject(initialCommitFile,initialCommit);  //ç”Ÿæˆcommitæ–‡ä»¶
+        tree.put(initialCommit.generateID(),initialCommitFile); //å°†commit map åˆ° tree
+        tree.saveTree();//ä¿å­˜tree
         try {
             Files.writeString(HEAD.toPath(),"master");
         } catch (IOException e) {
-            e.printStackTrace(); // ´òÓ¡Òì³£ĞÅÏ¢
+            e.printStackTrace(); // æ‰“å°å¼‚å¸¸ä¿¡æ¯
         }
         try {
             Files.writeString(MASTER.toPath(),initialCommit.generateID());
         } catch (IOException e) {
-            e.printStackTrace(); // ´òÓ¡Òì³£ĞÅÏ¢
+            e.printStackTrace(); // æ‰“å°å¼‚å¸¸ä¿¡æ¯
         }
 
-        //writeObject(HEAD,initialCommit.generateID());//´´½¨head£¬½«headÖ¸Ïòinitcommit
-        //writeObject(MASTER,initialCommit.generateID());//´´½¨master£¬½«masterÖ¸Ïòinitcommit
+        //writeObject(HEAD,initialCommit.generateID());//åˆ›å»ºheadï¼Œå°†headæŒ‡å‘initcommit
+        //writeObject(MASTER,initialCommit.generateID());//åˆ›å»ºmasterï¼Œå°†masteræŒ‡å‘initcommit
     }
     public static void add(String fileName){
-        //Èç¹ûÎÄ¼şµÄµ±Ç°¹¤×÷°æ±¾Óëµ±Ç°Ìá½»ÖĞµÄ°æ±¾ÍêÈ«ÏàÍ¬£¬Ôò²»Òª½«ÆäÌí¼Óµ½Ôİ´æÇøÓò£»
-        // Èç¹ûÎÄ¼şÒÑ¾­ÔÚÔİ´æÇøÓò£¬ÔòÓ¦½«Æä´ÓÔİ´æÇøÓòÒÆ³ı£¨µ±ÎÄ¼ş±»ĞŞ¸Ä¡¢Ìí¼Ó£¬
-        // È»ºóÓÖ¸Ä»ØÔ­Ê¼°æ±¾Ê±¿ÉÄÜ»á·¢ÉúÕâÖÖÇé¿ö£©¡£
-        initGitlet("add");//ÅĞ¶ÏÊÇ·ñinit
-        File addfile = join(CWD, fileName);//»ñÈ¡ÒªÌí¼ÓµÄÎÄ¼ş
-        if (!addfile.exists()){    //Ìí¼ÓµÄÎÄ¼ş²»´æÔÚ£¬exit
+        //å¦‚æœæ–‡ä»¶çš„å½“å‰å·¥ä½œç‰ˆæœ¬ä¸å½“å‰æäº¤ä¸­çš„ç‰ˆæœ¬å®Œå…¨ç›¸åŒï¼Œåˆ™ä¸è¦å°†å…¶æ·»åŠ åˆ°æš‚å­˜åŒºåŸŸï¼›
+        // å¦‚æœæ–‡ä»¶å·²ç»åœ¨æš‚å­˜åŒºåŸŸï¼Œåˆ™åº”å°†å…¶ä»æš‚å­˜åŒºåŸŸç§»é™¤ï¼ˆå½“æ–‡ä»¶è¢«ä¿®æ”¹ã€æ·»åŠ ï¼Œ
+        // ç„¶ååˆæ”¹å›åŸå§‹ç‰ˆæœ¬æ—¶å¯èƒ½ä¼šå‘ç”Ÿè¿™ç§æƒ…å†µï¼‰ã€‚
+        initGitlet("add");//åˆ¤æ–­æ˜¯å¦init
+        File addfile = join(CWD, fileName);//è·å–è¦æ·»åŠ çš„æ–‡ä»¶
+        if (!addfile.exists()){    //æ·»åŠ çš„æ–‡ä»¶ä¸å­˜åœ¨ï¼Œexit
             System.out.println("File does not exist.");
             System.exit(0);
         } else{
-            Blob blob = new Blob(fileName,readContentsAsString(addfile));//Éú³Éblob¶ÔÏó
-            RemoveStage removeStage = readObject(REMOVESTAGE, RemoveStage.class); //»ñÈ¡removestage
+            Blob blob = new Blob(fileName,readContentsAsString(addfile));//ç”Ÿæˆblobå¯¹è±¡
+            RemoveStage removeStage = readObject(REMOVESTAGE, RemoveStage.class); //è·å–removestage
             if (removeStage.hashMap.containsKey(fileName)){
-                //Èç¹ûÔİ´æµ±Ç°Ôİ´æÒÑ¾­ÓĞµÄÎÄ¼ş£¨ÏàÍ¬blob£©ÄÇÃ´²»Ìí¼Ó²¢ÇÒ½«removestageÖĞµÄÎÄ¼şÉ¾³ı
+                //å¦‚æœæš‚å­˜å½“å‰æš‚å­˜å·²ç»æœ‰çš„æ–‡ä»¶ï¼ˆç›¸åŒblobï¼‰é‚£ä¹ˆä¸æ·»åŠ å¹¶ä¸”å°†removestageä¸­çš„æ–‡ä»¶åˆ é™¤
                 removeStage.hashMap.remove(fileName);
                 removeStage.save();
             }
-            if (!blobExist(blob.generateID())){ //Èç¹û²»´æÔÚÏàÍ¬IDµÄblob£¬ÄÇÃ´½«blobĞ´Èëobj£¬·ñÔòÊ²Ã´Ò²²»×ö
+            if (!blobExist(blob.generateID())){ //å¦‚æœä¸å­˜åœ¨ç›¸åŒIDçš„blobï¼Œé‚£ä¹ˆå°†blobå†™å…¥objï¼Œå¦åˆ™ä»€ä¹ˆä¹Ÿä¸åš
                 File blobfile = new File(BLOB_DIR,blob.generateID());
-                Tree tree = readObject(TREE,Tree.class);//´ò¿ªtree
+                Tree tree = readObject(TREE,Tree.class);//æ‰“å¼€tree
                 tree.put(blob.generateID(),blobfile);
-                writeObject(blobfile,blob); //±£´æblobµ½OBJ
+                writeObject(blobfile,blob); //ä¿å­˜blobåˆ°OBJ
                 tree.saveTree();
-                AddStage stage = readObject(ADDSTAGE,AddStage.class);//¶ÁÈ¡stage
+                AddStage stage = readObject(ADDSTAGE,AddStage.class);//è¯»å–stage
                 stage.put(fileName,blobfile);//
                 //System.out.println( stage.hashMap.size());
                 stage.save();
@@ -103,16 +103,16 @@ public class Repository {
 
     }
     public static void commit(String message) {
-        initGitlet("commit");//ÅĞ¶ÏÊÇ·ñinit
-        if (message.isBlank()){ //ÅĞ¶ÏmessageÊÇ·ñÎª¿Õ
+        initGitlet("commit");//åˆ¤æ–­æ˜¯å¦init
+        if (message.isBlank()){ //åˆ¤æ–­messageæ˜¯å¦ä¸ºç©º
             System.out.println("Please enter a commit message.");
             System.exit(0);
         }
-        Commit commit = Commit.copyParent(message,new Date()); //¸¸½Úµã¸´ÖÆÒ»¸öcommit
+        Commit commit = Commit.copyParent(message,new Date()); //çˆ¶èŠ‚ç‚¹å¤åˆ¶ä¸€ä¸ªcommit
         AddStage stage = readObject(ADDSTAGE, AddStage.class);
         RemoveStage removestage = readObject(REMOVESTAGE, RemoveStage.class);
-        if (stage.isEmpty()){ //Ôİ´æÇøÎª¿Õ
-            if (removestage.isEmpty()) {//removeÒ²Îª¿Õ
+        if (stage.isEmpty()){ //æš‚å­˜åŒºä¸ºç©º
+            if (removestage.isEmpty()) {//removeä¹Ÿä¸ºç©º
                 System.out.println("No changes added to the commit.");
                 System.exit(0);
             }
@@ -121,17 +121,17 @@ public class Repository {
         for (String filename : filenames) {
             commit.blobID.remove(filename,removestage.hashMap.get(filename));
         }
-        //ÈçºÎÅĞ¶Ïcommit´æ´¢ÎÄ¼ş
+        //å¦‚ä½•åˆ¤æ–­commitå­˜å‚¨æ–‡ä»¶
 //        Enumeration<File> stagekeys = stage.hashMap.keys();
 //        while(stagekeys.hasMoreElements()){
 //            File stageblob = stagekeys.nextElement();
 //            String stagefilename = stage.hashMap.get(stageblob);
 //            commit.blobID.put(stagefilename,stageblob);
-//            //ÔÚ Java ÖĞ£¬¿ÉÒÔÊ¹ÓÃ put() ·½·¨À´ĞŞ¸Ä Hashtable ÖĞµÄ¼üÖµ¶Ô¡£
-//            // Èç¹ûÖ¸¶¨µÄ¼üÒÑ¾­´æÔÚÓÚ Hashtable ÖĞ£¬put() ·½·¨½«¸üĞÂ¶ÔÓ¦µÄÖµ£»
-//            // Èç¹û¼ü²»´æÔÚ£¬Ôò»áÌí¼ÓĞÂµÄ¼üÖµ¶Ô¡£
+//            //åœ¨ Java ä¸­ï¼Œå¯ä»¥ä½¿ç”¨ put() æ–¹æ³•æ¥ä¿®æ”¹ Hashtable ä¸­çš„é”®å€¼å¯¹ã€‚
+//            // å¦‚æœæŒ‡å®šçš„é”®å·²ç»å­˜åœ¨äº Hashtable ä¸­ï¼Œput() æ–¹æ³•å°†æ›´æ–°å¯¹åº”çš„å€¼ï¼›
+//            // å¦‚æœé”®ä¸å­˜åœ¨ï¼Œåˆ™ä¼šæ·»åŠ æ–°çš„é”®å€¼å¯¹ã€‚
 //        }
-        //È±ÉÙ¹¤×÷Ä¿Â¼É¾³ıÎÄ¼şµÄÇé¿ö
+        //ç¼ºå°‘å·¥ä½œç›®å½•åˆ é™¤æ–‡ä»¶çš„æƒ…å†µ
         Collection<String> removefilenames = stage.hashMap.keySet();
         for (String filename : removefilenames) {
             commit.blobID.put(filename,stage.hashMap.get(filename));
@@ -139,43 +139,43 @@ public class Repository {
         commit.commitID = commit.generateID();
         File commitfile = new File(OBJECTS_DIR, commit.generateID());
         writeObject(commitfile, commit);
-        Tree tree = readObject(TREE,Tree.class);//Éú³Étree
+        Tree tree = readObject(TREE,Tree.class);//ç”Ÿæˆtree
         tree.put(commit.generateID(),commitfile);
         tree.saveTree();
-        //branch³öÁËÎÊÌâ£¡£¡£¡
-//        Files.writeString(HEAD.toPath(),commit.generateID());//¸üĞÂhead
-//        Files.writeString(MASTER.toPath(),commit.generateID());//¸úĞÂmaster£¬Ó¦¸Ã¸üĞÂcurrentbranch¶ø²»ÊÇÒ»Î¶¸üĞÂmaster
+        //branchå‡ºäº†é—®é¢˜ï¼ï¼ï¼
+//        Files.writeString(HEAD.toPath(),commit.generateID());//æ›´æ–°head
+//        Files.writeString(MASTER.toPath(),commit.generateID());//è·Ÿæ–°masterï¼Œåº”è¯¥æ›´æ–°currentbranchè€Œä¸æ˜¯ä¸€å‘³æ›´æ–°master
         try {
-            Files.writeString(join(HEADS_DIR,curretnBranch()).toPath(),commit.generateID());//¸úĞÂmaster
+            Files.writeString(join(HEADS_DIR,curretnBranch()).toPath(),commit.generateID());//è·Ÿæ–°master
         } catch (IOException e) {
-            e.printStackTrace(); // ´òÓ¡Òì³£ĞÅÏ¢
+            e.printStackTrace(); // æ‰“å°å¼‚å¸¸ä¿¡æ¯
         }
         try {
-            Files.writeString(HEAD.toPath(),curretnBranch());//¸üĞÂhead
+            Files.writeString(HEAD.toPath(),curretnBranch());//æ›´æ–°head
         } catch (IOException e) {
-            e.printStackTrace(); // ´òÓ¡Òì³£ĞÅÏ¢
+            e.printStackTrace(); // æ‰“å°å¼‚å¸¸ä¿¡æ¯
         }
         //System.out.println(curretnBranch());
         // Files.writeString(join(HEADS_DIR,curretnBranch()).toPath(),commit.generateID());
         removestage.clear();
         removestage.save();
-        stage.clear();//Çå¿Õstage£»
+        stage.clear();//æ¸…ç©ºstageï¼›
         stage.save();
     }
     public static void rm(String fileName){
         initGitlet("rm");
-        AddStage stage = Utils.readObject(ADDSTAGE,AddStage.class);//»ñÈ¡stage¶ÔÏó
-        Commit headcommit = headcommit();//»ñÈ¡µ±Ç°headÖ¸ÏòµÄcommit
-        if (stage.hashMap.containsKey(fileName)){   //Èç¹ûÔÚÔİ´æÇøÖĞ£¬ÄÇÃ´È¡ÏûÔİ´æ
+        AddStage stage = Utils.readObject(ADDSTAGE,AddStage.class);//è·å–stageå¯¹è±¡
+        Commit headcommit = headcommit();//è·å–å½“å‰headæŒ‡å‘çš„commit
+        if (stage.hashMap.containsKey(fileName)){   //å¦‚æœåœ¨æš‚å­˜åŒºä¸­ï¼Œé‚£ä¹ˆå–æ¶ˆæš‚å­˜
             stage.hashMap.remove(fileName,stage.hashMap.get(fileName));
             stage.save();
-        } else if (headcommit.blobID.containsKey(fileName)) {//Èç¹û±»×·×Ù
-            //´íÎóÌáÊ¾£¬contains,containsKey,containsValue²»ÄÜÂÒÓÃ
-            RemoveStage removestage = Utils.readObject(REMOVESTAGE,RemoveStage.class);//»ñµÃremovestage¶ÔÏó
-            removestage.put(fileName,headcommit.blobID.get(fileName));  //Ìí¼ÓÖÁremovestage
-            removestage.save();//±£´æremovstage
+        } else if (headcommit.blobID.containsKey(fileName)) {//å¦‚æœè¢«è¿½è¸ª
+            //é”™è¯¯æç¤ºï¼Œcontains,containsKey,containsValueä¸èƒ½ä¹±ç”¨
+            RemoveStage removestage = Utils.readObject(REMOVESTAGE,RemoveStage.class);//è·å¾—removestageå¯¹è±¡
+            removestage.put(fileName,headcommit.blobID.get(fileName));  //æ·»åŠ è‡³removestage
+            removestage.save();//ä¿å­˜removstage
             File deletefile = join(CWD,fileName);
-            Utils.restrictedDelete(deletefile);//É¾³ıÎÄ¼ş
+            Utils.restrictedDelete(deletefile);//åˆ é™¤æ–‡ä»¶
         }else {
             System.out.println("No reason to remove the file.");
             System.exit(0);
@@ -186,20 +186,20 @@ public class Repository {
         Commit commit = headcommit();
         // System.out.println("commitid" + commit.commitID);
         //  System.out.println("parentid" + commit.parentsID);
-        while(commit.parentsID.size()!=0){//ÎªÊ²Ã´Ò»¿ªÊ¼µÄcommit.parentID != null²»ĞĞ£¿ÓÀÔ¶³¬¹ıË÷Òı
+        while(commit.parentsID.size()!=0){//ä¸ºä»€ä¹ˆä¸€å¼€å§‹çš„commit.parentID != nullä¸è¡Œï¼Ÿæ°¸è¿œè¶…è¿‡ç´¢å¼•
             printLog(commit);
             commit = commit.returnParent();
         }
         System.out.println("===");
         System.out.println("commit " + commit.commitID);
-        System.out.println("Date: " + commit.timeStamp);//Íü¼ÇÃ°ºÅ ¸ãËÀÎÒÁË
+        System.out.println("Date: " + commit.timeStamp);//å¿˜è®°å†’å· ææ­»æˆ‘äº†
         System.out.println(commit.message);
         System.out.println();
     }
-    public static void globallog(){//Êä³öÈ«²¿commit
+    public static void globallog(){//è¾“å‡ºå…¨éƒ¨commit
         initGitlet("global-log");
         List<String> filelist = Utils.plainFilenamesIn(OBJECTS_DIR);
-        for (String filename:filelist){   //²»ÖªµÀÈçºÎ´ÓcommitºÍblobÖĞ±éÀúÀ´²éÕÒcommit
+        for (String filename:filelist){   //ä¸çŸ¥é“å¦‚ä½•ä»commitå’Œblobä¸­éå†æ¥æŸ¥æ‰¾commit
             File commitfile = join(OBJECTS_DIR,filename);
             Commit commit = readObject(commitfile, Commit.class);
             printLog(commit);
@@ -208,7 +208,7 @@ public class Repository {
     public static void status(){
         initGitlet("status");
         System.out.println("=== Branches ===");
-        printbranches(); //´òÓ¡branches
+        printbranches(); //æ‰“å°branches
         System.out.println("=== Staged Files ===");
         printstage("add");
         System.out.println("=== Removed Files ===");
@@ -218,11 +218,11 @@ public class Repository {
         System.out.println("=== Untracked Files ===");
         System.out.println();
     }
-    public static void find(String message){//¸ù¾İcommit message Êä³ö commitid
+    public static void find(String message){//æ ¹æ®commit message è¾“å‡º commitid
         initGitlet("find");
-        boolean idExist = false;//ÊÇ·ñ´æÔÚ Æ¥ÅäµÄcommit
+        boolean idExist = false;//æ˜¯å¦å­˜åœ¨ åŒ¹é…çš„commit
         List<String> filelist = Utils.plainFilenamesIn(OBJECTS_DIR);
-        for (String filename:filelist){     //±éÀúcommit
+        for (String filename:filelist){     //éå†commit
             File commitfile = join(OBJECTS_DIR,filename);
             Commit commit = readObject(commitfile, Commit.class);
             if (commit.message.equals(message)){
@@ -230,7 +230,7 @@ public class Repository {
                 System.out.println(commit.commitID);
             }
         }
-        if (!idExist){//Èç¹û ²»´æÔÚ Æ¥Åäcommit
+        if (!idExist){//å¦‚æœ ä¸å­˜åœ¨ åŒ¹é…commit
             System.out.println("Found no commit with that message.");
         }
     }
@@ -240,37 +240,37 @@ public class Repository {
         if (args.length == 3 && args[1].equals("--")){  //checkout -- [file name]
             String filename = args[2];
             Commit headcommit = headcommit();
-            if (!headcommit.blobID.containsKey(filename)){//Èç¹ûheadÖĞÃ»ÓĞ¸ÃÎÄ¼şÃû
+            if (!headcommit.blobID.containsKey(filename)){//å¦‚æœheadä¸­æ²¡æœ‰è¯¥æ–‡ä»¶å
                 System.out.println("File does not exist in that commit.");
                 System.exit(0);
             }else {
-                cwdGetFile(headcommit,filename);//½«headcommitÖĞµÄÖ¸¶¨fileÌí¼Óµ½CWD
+                cwdGetFile(headcommit,filename);//å°†headcommitä¸­çš„æŒ‡å®šfileæ·»åŠ åˆ°CWD
             }
         } else if (args.length == 4 && args[2].equals("--")) {  //checkout [commit id] -- [file name]
             String commitID = args[1];
             String filename = args [3];
-            if (!fileContains(OBJECTS_DIR,commitID)){//Èç¹û²»´æÔÚ¸Ãcommit
+            if (!fileContains(OBJECTS_DIR,commitID)){//å¦‚æœä¸å­˜åœ¨è¯¥commit
                 System.out.println("No commit with that id exists.");
                 System.exit(0);
-            }else {//´æÔÚcommit
-                Commit commit = readObject(join(OBJECTS_DIR,commitID), Commit.class);//»ñÈ¡Ö¸¶¨commit
-                if (!commit.blobID.containsKey(filename)){//Èç¹ûcommit²»°üº¬¸ÃÎÄ¼şÃû
+            }else {//å­˜åœ¨commit
+                Commit commit = readObject(join(OBJECTS_DIR,commitID), Commit.class);//è·å–æŒ‡å®šcommit
+                if (!commit.blobID.containsKey(filename)){//å¦‚æœcommitä¸åŒ…å«è¯¥æ–‡ä»¶å
                     System.out.println("File does not exist in that commit.");
                     System.exit(0);
                 }else {
-                    cwdGetFile(commit,filename);//½«commitÖĞµÄÖ¸¶¨fileÌí¼Óµ½CWD
+                    cwdGetFile(commit,filename);//å°†commitä¸­çš„æŒ‡å®šfileæ·»åŠ åˆ°CWD
                 }
             }
         } else if (args.length == 2) {  //checkout [branch name]
             String branchname = args[1];
-            if (!fileContains(HEADS_DIR, branchname)){//Èç¹ûbranch²»´æÔÚ
+            if (!fileContains(HEADS_DIR, branchname)){//å¦‚æœbranchä¸å­˜åœ¨
                 System.out.println("No such branch exists.");
                 System.exit(0);
             }else {
-                if (curretnBranch().equals(branchname)){//branchnameÊÇµ±Ç°branch
+                if (curretnBranch().equals(branchname)){//branchnameæ˜¯å½“å‰branch
                     System.out.println("No need to checkout the current branch.");
                     System.exit(0);
-                }else {//·ÖÇé¿öÌÖÂÛ
+                }else {//åˆ†æƒ…å†µè®¨è®º
                     Trackerro(branchname);
                 }
             }
@@ -279,7 +279,7 @@ public class Repository {
             System.exit(0);
         }
     }
-    public static void branch(String branchname)  {//´´½¨·ÖÖ§
+    public static void branch(String branchname)  {//åˆ›å»ºåˆ†æ”¯
         initGitlet("branch");
         if (fileContains(HEADS_DIR,branchname)){
             System.out.println("A branch with that name already exists.");
@@ -287,94 +287,94 @@ public class Repository {
         }
         File newbranchfile = join(HEADS_DIR,branchname);
         try {
-            Files.writeString(newbranchfile.toPath(),headID());//´´½¨·ÖÖ§ÎÄ¼ş£¬ÀïÃæ±£´æµ±Ç°headID
+            Files.writeString(newbranchfile.toPath(),headID());//åˆ›å»ºåˆ†æ”¯æ–‡ä»¶ï¼Œé‡Œé¢ä¿å­˜å½“å‰headID
         } catch (IOException e) {
-            e.printStackTrace(); // ´òÓ¡Òì³£ĞÅÏ¢
+            e.printStackTrace(); // æ‰“å°å¼‚å¸¸ä¿¡æ¯
         }
 
     }
-    public static void rmbranch(String branchname) {//É¾³ı·ÖÖ§
+    public static void rmbranch(String branchname) {//åˆ é™¤åˆ†æ”¯
         initGitlet("rmbranch");
-        if (!fileContains(HEADS_DIR,branchname)){  //Èç¹û²»´æÔÚ´Ë·ÖÖ§
+        if (!fileContains(HEADS_DIR,branchname)){  //å¦‚æœä¸å­˜åœ¨æ­¤åˆ†æ”¯
             System.out.println("A branch with that name does not exist.");
             System.exit(0);
-        }else if (branchname.equals(curretnBranch())){//Èç¹ûÉ¾³ıµ±Ç°·ÖÖ§
+        }else if (branchname.equals(curretnBranch())){//å¦‚æœåˆ é™¤å½“å‰åˆ†æ”¯
             System.out.println("Cannot remove the current branch.");
             System.exit(0);
         }else {
             File file = join(HEADS_DIR,branchname);
             //System.out.println(file);
-            //restrictedDelete(file);//É¾³ı·ÖÖ§ÎÄ¼ş,Ö»ÄÜÉ¾³ı·ÇÒş²ØÄ¿Â¼µÄÎÄ¼ş
+            //restrictedDelete(file);//åˆ é™¤åˆ†æ”¯æ–‡ä»¶,åªèƒ½åˆ é™¤ééšè—ç›®å½•çš„æ–‡ä»¶
             try {
                 Files.delete(file.toPath());
             } catch (IOException e) {
-                e.printStackTrace(); // ´òÓ¡Òì³£ĞÅÏ¢
+                e.printStackTrace(); // æ‰“å°å¼‚å¸¸ä¿¡æ¯
             }
         }
     }
     public static void reset(String commitID) {
-        if (!fileContains(OBJECTS_DIR,commitID)){//Èç¹û²»´æÔÚ¸Ãcommit
+        if (!fileContains(OBJECTS_DIR,commitID)){//å¦‚æœä¸å­˜åœ¨è¯¥commit
             System.out.println("No commit with that id exists.");
             System.exit(0);
         }else {
-            Commit headcommit = headcommit();//»ñÈ¡headcommit
-            Commit newcommit = readObject(join(OBJECTS_DIR,commitID), Commit.class);//»ñÈ¡newcommit
-            Set<String> headSet= headcommit.blobID.keySet(); //µ±Ç°headcommitËùÓĞµÄ×·×ÙÎÄ¼şµÄset
-            Set<String> newSet = newcommit.blobID.keySet(); //µ±Ç°newcommitËùÓĞµÄ×·×ÙÎÄ¼şµÄset
-            for (String newtrackfile:newSet){//µ«Ç°commitÎ´×·×Ù£¬ÌáÈ¡µÄ×·×ÙÁË£¬²¢ÇÒcwdÖĞÓĞ¸ÃÎÄ¼şÒª¸²¸Ç
+            Commit headcommit = headcommit();//è·å–headcommit
+            Commit newcommit = readObject(join(OBJECTS_DIR,commitID), Commit.class);//è·å–newcommit
+            Set<String> headSet= headcommit.blobID.keySet(); //å½“å‰headcommitæ‰€æœ‰çš„è¿½è¸ªæ–‡ä»¶çš„set
+            Set<String> newSet = newcommit.blobID.keySet(); //å½“å‰newcommitæ‰€æœ‰çš„è¿½è¸ªæ–‡ä»¶çš„set
+            for (String newtrackfile:newSet){//ä½†å‰commitæœªè¿½è¸ªï¼Œæå–çš„è¿½è¸ªäº†ï¼Œå¹¶ä¸”cwdä¸­æœ‰è¯¥æ–‡ä»¶è¦è¦†ç›–
                 if (!headSet.contains(newtrackfile) && fileContains(CWD,newtrackfile)){
                     System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
                     System.exit(0);
                 }
             }
             for (String headtrackfile:headSet){
-                if (!newSet.contains(headtrackfile)){//Èç¹ûÌáÈ¡µÄ×·×Ù²»°üº¬µ±Ç°µÄ×·×Ù
-                    restrictedDelete(join(CWD,headtrackfile));//Èç¹ûµ±Ç°Ä¿Â¼ÓĞ¸ÃÎÄ¼ş£¬ÔòÉ¾³ıhead×·×ÙµÄÎÄ¼ş
+                if (!newSet.contains(headtrackfile)){//å¦‚æœæå–çš„è¿½è¸ªä¸åŒ…å«å½“å‰çš„è¿½è¸ª
+                    restrictedDelete(join(CWD,headtrackfile));//å¦‚æœå½“å‰ç›®å½•æœ‰è¯¥æ–‡ä»¶ï¼Œåˆ™åˆ é™¤headè¿½è¸ªçš„æ–‡ä»¶
                 }
             }
             for (String newtrackfile:newSet){
-                cwdGetFile(newcommit,newtrackfile);//Ğ´ÈëÎÄ¼şµ½CWD
+                cwdGetFile(newcommit,newtrackfile);//å†™å…¥æ–‡ä»¶åˆ°CWD
             }
             try {
-                Files.writeString((join(HEADS_DIR,curretnBranch()).toPath()), commitID);//ĞŞ¸Äµ±Ç°µÄ»î¶¯·ÖÖ§
+                Files.writeString((join(HEADS_DIR,curretnBranch()).toPath()), commitID);//ä¿®æ”¹å½“å‰çš„æ´»åŠ¨åˆ†æ”¯
             } catch (IOException e) {
-                e.printStackTrace(); // ´òÓ¡Òì³£ĞÅÏ¢
+                e.printStackTrace(); // æ‰“å°å¼‚å¸¸ä¿¡æ¯
             }
             try {
-                Files.writeString(HEAD.toPath(),curretnBranch());//ĞŞ¸Äµ±Ç°µÄ»î¶¯·ÖÖ§
+                Files.writeString(HEAD.toPath(),curretnBranch());//ä¿®æ”¹å½“å‰çš„æ´»åŠ¨åˆ†æ”¯
             } catch (IOException e) {
-                e.printStackTrace(); // ´òÓ¡Òì³£ĞÅÏ¢
+                e.printStackTrace(); // æ‰“å°å¼‚å¸¸ä¿¡æ¯
             }
             AddStage stage = readObject(ADDSTAGE,AddStage.class);
             stage.clear();
             stage.save();
         }
     }
-    public static void Trackerro(String branchname) {//¼ì²âÊÇ·ñ»áÓĞµ±Ç°Î´×·×Ùµ«ÊÇÌáÈ¡×·×ÙµÄÇé¿ö
-        Commit headcommit = headcommit();//·µ»Øheadcommit
-        String newcommitID = readContentsAsString(join(HEADS_DIR,branchname));//newbranchµÄID
-        Commit newcommit = readObject(join(OBJECTS_DIR,newcommitID), Commit.class);//»ñÈ¡newcommit
-        Set<String> headSet= headcommit.blobID.keySet(); //µ±Ç°headcommitËùÓĞµÄ×·×ÙÎÄ¼şµÄset
-        Set<String> newSet = newcommit.blobID.keySet(); //µ±Ç°newcommitËùÓĞµÄ×·×ÙÎÄ¼şµÄset
-        for (String newtrackfile:newSet){//µ«Ç°commitÎ´×·×Ù£¬ÌáÈ¡µÄ×·×ÙÁË£¬²¢ÇÒcwdÖĞÓĞ¸ÃÎÄ¼şÒª¸²¸Ç
+    public static void Trackerro(String branchname) {//æ£€æµ‹æ˜¯å¦ä¼šæœ‰å½“å‰æœªè¿½è¸ªä½†æ˜¯æå–è¿½è¸ªçš„æƒ…å†µ
+        Commit headcommit = headcommit();//è¿”å›headcommit
+        String newcommitID = readContentsAsString(join(HEADS_DIR,branchname));//newbranchçš„ID
+        Commit newcommit = readObject(join(OBJECTS_DIR,newcommitID), Commit.class);//è·å–newcommit
+        Set<String> headSet= headcommit.blobID.keySet(); //å½“å‰headcommitæ‰€æœ‰çš„è¿½è¸ªæ–‡ä»¶çš„set
+        Set<String> newSet = newcommit.blobID.keySet(); //å½“å‰newcommitæ‰€æœ‰çš„è¿½è¸ªæ–‡ä»¶çš„set
+        for (String newtrackfile:newSet){//ä½†å‰commitæœªè¿½è¸ªï¼Œæå–çš„è¿½è¸ªäº†ï¼Œå¹¶ä¸”cwdä¸­æœ‰è¯¥æ–‡ä»¶è¦è¦†ç›–
             if (!headSet.contains(newtrackfile) && fileContains(CWD,newtrackfile)){
                 System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
                 System.exit(0);
             }
         }
         for (String headtrackfile:headSet){
-            if (!newSet.contains(headtrackfile)){//Èç¹ûÌáÈ¡µÄ×·×Ù²»°üº¬µ±Ç°µÄ×·×Ù
-                restrictedDelete(join(CWD,headtrackfile));//Èç¹ûµ±Ç°Ä¿Â¼ÓĞ¸ÃÎÄ¼ş£¬ÔòÉ¾³ıhead×·×ÙµÄÎÄ¼ş
-                //System.out.println("É¾ÁËÃ»");
+            if (!newSet.contains(headtrackfile)){//å¦‚æœæå–çš„è¿½è¸ªä¸åŒ…å«å½“å‰çš„è¿½è¸ª
+                restrictedDelete(join(CWD,headtrackfile));//å¦‚æœå½“å‰ç›®å½•æœ‰è¯¥æ–‡ä»¶ï¼Œåˆ™åˆ é™¤headè¿½è¸ªçš„æ–‡ä»¶
+                //System.out.println("åˆ äº†æ²¡");
             }
         }
         for (String newtrackfile:newSet){
-            cwdGetFile(newcommit,newtrackfile);//Ğ´ÈëÎÄ¼şµ½CWD
+            cwdGetFile(newcommit,newtrackfile);//å†™å…¥æ–‡ä»¶åˆ°CWD
         }
         try {
-            Files.writeString(HEAD.toPath(),branchname);//ĞŞ¸Äµ±Ç°µÄ»î¶¯·ÖÖ§
+            Files.writeString(HEAD.toPath(),branchname);//ä¿®æ”¹å½“å‰çš„æ´»åŠ¨åˆ†æ”¯
         } catch (IOException e) {
-            e.printStackTrace(); // ´òÓ¡Òì³£ĞÅÏ¢
+            e.printStackTrace(); // æ‰“å°å¼‚å¸¸ä¿¡æ¯
         }
     }
 
@@ -383,15 +383,15 @@ public class Repository {
         String splitcommitID = splitpoint(branchname);
         Commit splitcommit = getcommit(splitpoint(branchname));
         //System.out.println(splitcommitID);
-        if (splitcommitID.equals(headID())){//Èç¹û·Ö¸îµã¾ÍÊÇµ±Ç°·ÖÖ§
+        if (splitcommitID.equals(headID())){//å¦‚æœåˆ†å‰²ç‚¹å°±æ˜¯å½“å‰åˆ†æ”¯
             try {
-                Files.writeString(HEAD.toPath(),readContentsAsString(join(HEADS_DIR,branchname)));//¸üĞÂheadÖÁ¸Ãbranch
+                Files.writeString(HEAD.toPath(),readContentsAsString(join(HEADS_DIR,branchname)));//æ›´æ–°headè‡³è¯¥branch
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
             System.out.println("Current branch fast-forwarded");
             System.exit(0);
-        } else if (splitcommitID.equals(readContentsAsString(join(HEADS_DIR,branchname)))) {//Èç¹û·Ö¸îµãµÈÓÚ¸ø¶¨·ÖÖ§
+        } else if (splitcommitID.equals(readContentsAsString(join(HEADS_DIR,branchname)))) {//å¦‚æœåˆ†å‰²ç‚¹ç­‰äºç»™å®šåˆ†æ”¯
             System.out.println("Given branch is an ancestor of the current branch");
             System.exit(0);
         }else {
@@ -399,40 +399,40 @@ public class Repository {
             String message = "Merged " + branchname +" into " + currentbranchname+".";
             Commit mergecommit = new Commit(message,new Date());
             Commit headcommit =headcommit();
-            Commit branchcommit = getcommit(readContentsAsString(join(HEADS_DIR,branchname)));  //»ñÈ¡Ö¸¶¨commit
+            Commit branchcommit = getcommit(readContentsAsString(join(HEADS_DIR,branchname)));  //è·å–æŒ‡å®šcommit
             Set<String> hset = headcommit.blobID.keySet();
             Set<String> sset = splitcommit.blobID.keySet();
             Set<String> bset = branchcommit.blobID.keySet();
-            TreeMap<String,File> allmap = new TreeMap<>();//±£´æËùÓĞ
-            Set<String> fileset = fileset(mergecommit, headcommit, branchcommit);//Èı¸öcommit×·×ÙµÄËùÓĞµÄÎÄ¼ş
+            TreeMap<String,File> allmap = new TreeMap<>();//ä¿å­˜æ‰€æœ‰
+            Set<String> fileset = fileset(mergecommit, headcommit, branchcommit);//ä¸‰ä¸ªcommitè¿½è¸ªçš„æ‰€æœ‰çš„æ–‡ä»¶
             for (String filename : fileset){
-                if (!sset.contains(filename)){//ssetÎ´×·×Ù
-                    if (hset.contains(filename) && bset.contains(filename)){//hºÍb¶¼°üº¬
+                if (!sset.contains(filename)){//ssetæœªè¿½è¸ª
+                    if (hset.contains(filename) && bset.contains(filename)){//hå’Œbéƒ½åŒ…å«
                         if (headcommit.blobID.get(filename).equals(branchcommit.blobID.get(filename))){
-                            if (!fileContains(CWD,filename)){ //cwd°üº¬Ôò²»¶¯£¬²»°üº¬ÔòÌí¼ÓÖÁcwd
+                            if (!fileContains(CWD,filename)){ //cwdåŒ…å«åˆ™ä¸åŠ¨ï¼Œä¸åŒ…å«åˆ™æ·»åŠ è‡³cwd
                                 cwdGetFile(headcommit,filename);
                             }
                             //mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
-                        }else {//h£¡= b   ³åÍ»
+                        }else {//hï¼= b   å†²çª
                             conflict(filename,headcommit,branchcommit);
                         }
-                    } else {//¶¼²»°üº¬£¬»òÕß Ò»¸ö°üº¬Ò»¸ö²»°üº¬   s£¬bÎŞ£¬hÓĞ
+                    } else {//éƒ½ä¸åŒ…å«ï¼Œæˆ–è€… ä¸€ä¸ªåŒ…å«ä¸€ä¸ªä¸åŒ…å«   sï¼Œbæ— ï¼Œhæœ‰
                         if (hset.contains(filename)){
                             //mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
                             //restrictedDelete(join(CWD,filename));
-                        } else if (bset.contains(filename)) { //s£¬hÎŞ£¬bÓĞ
+                        } else if (bset.contains(filename)) { //sï¼Œhæ— ï¼Œbæœ‰
                             mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
-                            cwdGetFile(branchcommit,filename);//Ìí¼ÓÎÄ¼ş
-                            //add(filename);//Ìí¼ÓÖÁÔİ´æÇø
+                            cwdGetFile(branchcommit,filename);//æ·»åŠ æ–‡ä»¶
+                            //add(filename);//æ·»åŠ è‡³æš‚å­˜åŒº
                         }
                     }
-                }else {//ssetÒÑ×·×Ù
-                    if (hset.contains(filename)){ //h×·×Ù
-                        if (bset.contains(filename)){ //b×·×Ù
+                }else {//ssetå·²è¿½è¸ª
+                    if (hset.contains(filename)){ //hè¿½è¸ª
+                        if (bset.contains(filename)){ //bè¿½è¸ª
                             if (headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && !branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))){
                                 //h = s,b != s
                                 mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
-                                cwdGetFile(branchcommit,filename);//Ìí¼ÓÎÄ¼ş
+                                cwdGetFile(branchcommit,filename);//æ·»åŠ æ–‡ä»¶
                                 //add(filename);
                             }
                             if (!headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)) && branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))) {
@@ -443,19 +443,19 @@ public class Repository {
                                 //h != s,b != s
                                 conflict(filename,headcommit,branchcommit);
                             }
-                        }else { //b²»×·×Ù
+                        }else { //bä¸è¿½è¸ª
                             restrictedDelete(join(CWD,filename));
-                            //rm(filename);//È¡Ïû×·×Ù
+                            //rm(filename);//å–æ¶ˆè¿½è¸ª
                         }
-                    } else { //h²»×·×Ù
-                        if (bset.contains(filename)){//b×·×Ù    !!!!
+                    } else { //hä¸è¿½è¸ª
+                        if (bset.contains(filename)){//bè¿½è¸ª    !!!!
                             if (!branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)))
                                 //b != s
                                 //mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
                                 cwdGetFile(branchcommit,filename);
                         }
-                        else {//b²»×·×Ù
-                            //33 Ã»½øÀ´
+                        else {//bä¸è¿½è¸ª
+                            //33 æ²¡è¿›æ¥
                             //restrictedDelete(join(CWD,"f.txt"));
                             restrictedDelete(join(CWD,filename));
                         }
@@ -463,19 +463,19 @@ public class Repository {
                 }
             }
             File branchpointfile = join(HEADS_DIR,branchname);
-            mergecommit.parentsID.add(headID());//¸ømergeÉè¶¨parents
+            mergecommit.parentsID.add(headID());//ç»™mergeè®¾å®šparents
             mergecommit.parentsID.add(readContentsAsString(branchpointfile));
             mergecommit.commitID = mergecommit.generateID();
-            writeObject(join(OBJECTS_DIR,mergecommit.commitID), mergecommit);//´´½¨commitÎÄ¼ş
+            writeObject(join(OBJECTS_DIR,mergecommit.commitID), mergecommit);//åˆ›å»ºcommitæ–‡ä»¶
             try {
-                Files.writeString(HEAD.toPath(),branchname);//¸üĞÂhead
+                Files.writeString(HEAD.toPath(),branchname);//æ›´æ–°head
             } catch (IOException e) {
-                e.printStackTrace(); // ´òÓ¡Òì³£ĞÅÏ¢
+                e.printStackTrace(); // æ‰“å°å¼‚å¸¸ä¿¡æ¯
             }
             try {
-                Files.writeString(branchpointfile.toPath(),mergecommit.commitID);//¸üĞÂother´æÖüµÄIDĞÅÏ¢
+                Files.writeString(branchpointfile.toPath(),mergecommit.commitID);//æ›´æ–°otherå­˜è´®çš„IDä¿¡æ¯
             } catch (IOException e) {
-                e.printStackTrace(); // ´òÓ¡Òì³£ĞÅÏ¢
+                e.printStackTrace(); // æ‰“å°å¼‚å¸¸ä¿¡æ¯
             }
 
         }
@@ -484,27 +484,27 @@ public class Repository {
     public static void conflict(String filename,Commit headcommit,Commit branchcommit){
 
     }
-    public static void addset( Set<String> fileset, Commit commit){//Ìí¼Ó×·×ÙÎÄ¼şÃû
+    public static void addset( Set<String> fileset, Commit commit){//æ·»åŠ è¿½è¸ªæ–‡ä»¶å
         for (String filename : commit.blobID.keySet()){
             if ( !fileset.contains(filename) ){
                 fileset.add(filename);
             }
         }
     }
-    public static Set<String> fileset(Commit commit1,Commit commit2,Commit commit3){//Éú³ÉËùÓĞ×·×ÙÎÄ¼şµÄset
+    public static Set<String> fileset(Commit commit1,Commit commit2,Commit commit3){//ç”Ÿæˆæ‰€æœ‰è¿½è¸ªæ–‡ä»¶çš„set
         Set<String> fileset = new TreeSet<>();
         addset(fileset, commit1);
         addset(fileset, commit2);
         addset(fileset, commit3);
         return fileset;
     }
-    public static String splitpoint(String branchename){//ÕÒµ½splitpoint
+    public static String splitpoint(String branchename){//æ‰¾åˆ°splitpoint
         String newcommitID = readContentsAsString(join(HEADS_DIR,branchename));
-        TreeMap<String,Integer> oldmap = commitBFS(headcommit());//Ó³Éä,commitID,¾àÀëinitial¾àÀë  ±¾ÉíµÄÓ³Éä
-        TreeMap<String,Integer> newmap = commitBFS(getcommit(newcommitID));//Ó³Éä,commitID,¾àÀëinitial¾àÀë   ĞÂÖ¸¶¨µÄÓ³Éä
-        int minidistance = 99999999;//ÉèÁ¢´óÊıÓÃ×ö±È½Ï
+        TreeMap<String,Integer> oldmap = commitBFS(headcommit());//æ˜ å°„,commitID,è·ç¦»initialè·ç¦»  æœ¬èº«çš„æ˜ å°„
+        TreeMap<String,Integer> newmap = commitBFS(getcommit(newcommitID));//æ˜ å°„,commitID,è·ç¦»initialè·ç¦»   æ–°æŒ‡å®šçš„æ˜ å°„
+        int minidistance = 99999999;//è®¾ç«‹å¤§æ•°ç”¨åšæ¯”è¾ƒ
         String minicommitID = newcommitID;
-        for (String key:oldmap.keySet()) {//±éÀúoldmap
+        for (String key:oldmap.keySet()) {//éå†oldmap
             if (newmap.containsKey(key) && oldmap.get(key) < minidistance){
                 minidistance = oldmap.get(key);
                 minicommitID = key;
@@ -512,34 +512,34 @@ public class Repository {
         }
         return minicommitID;
     }
-    public static Commit getcommit(String commitID){//·µ»ØÖ¸¶¨commit
+    public static Commit getcommit(String commitID){//è¿”å›æŒ‡å®šcommit
         //System.out.println(commitID);
         return readObject(join(OBJECTS_DIR,commitID),Commit.class);
     }
-    public static List<Commit> adjcommit(Commit commit){//·µ»ØÒ»¸öcommitµÄÏàÁÚcommit£¬¼´commitµÄparentcommit
+    public static List<Commit> adjcommit(Commit commit){//è¿”å›ä¸€ä¸ªcommitçš„ç›¸é‚»commitï¼Œå³commitçš„parentcommit
         List<Commit> adjcommit = new ArrayList<>();
         for (String parentID: commit.parentsID) {
             adjcommit.add(getcommit(parentID));
         }
         return adjcommit;
     }
-    public static TreeMap<String,Integer> commitBFS(Commit commit){//ÓÃbfs±éÀú£¬´æ´¢ËùÓĞµ½¸ÃcommitµÄ<commitID, distance>
-        TreeMap<String,Integer>  map = new TreeMap<>();//´æ´¢commitIDÓë¸Ã·ÖÖ§µÄ¾àÀë
-        //int distence = 0;//¾àÀë ×î³õµÄ ¾àÀë
-        ArrayDeque<Commit> deque = new ArrayDeque<>();  //´æ·Åcommit
-        List<String> visit = new ArrayList<>();  //ÅĞ¶ÏcommitÊÇ·ñ±»·ÃÎÊ¹ı
-        deque.add(commit);//Èë¶Ó
-        visit.add(commit.commitID);//Ìí¼ÓÖÁÒÑ·ÃÎÊÁĞ±í
+    public static TreeMap<String,Integer> commitBFS(Commit commit){//ç”¨bfséå†ï¼Œå­˜å‚¨æ‰€æœ‰åˆ°è¯¥commitçš„<commitID, distance>
+        TreeMap<String,Integer>  map = new TreeMap<>();//å­˜å‚¨commitIDä¸è¯¥åˆ†æ”¯çš„è·ç¦»
+        //int distence = 0;//è·ç¦» æœ€åˆçš„ è·ç¦»
+        ArrayDeque<Commit> deque = new ArrayDeque<>();  //å­˜æ”¾commit
+        List<String> visit = new ArrayList<>();  //åˆ¤æ–­commitæ˜¯å¦è¢«è®¿é—®è¿‡
+        deque.add(commit);//å…¥é˜Ÿ
+        visit.add(commit.commitID);//æ·»åŠ è‡³å·²è®¿é—®åˆ—è¡¨
         map.put(commit.commitID, 0);
         while( !deque.isEmpty() ){
             Commit currentcommit = deque.remove();
             for (String adjcommitID : currentcommit.parentsID){
-                if (!visit.contains(adjcommitID)){//Èç¹ûÎ´±»·ÃÎÊ
-                    visit.add(adjcommitID);//±ê¼ÇÎª·ÃÎÊ
-                    deque.add(getcommit(adjcommitID));//Èë¶Ó
+                if (!visit.contains(adjcommitID)){//å¦‚æœæœªè¢«è®¿é—®
+                    visit.add(adjcommitID);//æ ‡è®°ä¸ºè®¿é—®
+                    deque.add(getcommit(adjcommitID));//å…¥é˜Ÿ
                     map.put(adjcommitID,map.get(currentcommit.commitID) + 1 );
                     if (getcommit(adjcommitID).message.equals("initial commit")){
-                        //ÅĞ¶ÏÊÇ·ñµ½initialcommit
+                        //åˆ¤æ–­æ˜¯å¦åˆ°initialcommit
                         return map;
                     }
                 }
@@ -549,29 +549,29 @@ public class Repository {
     }
 
 
-    public static String curretnBranch(){  //·µ»Øµ±Ç°branchÃû
+    public static String curretnBranch(){  //è¿”å›å½“å‰branchå
 //        List<String> filelist = Utils.plainFilenamesIn(HEADS_DIR);
-//        for (String filename:filelist) {//±éÀúheadsÎÄ¼ş¼Ğ
-//            File file = join(HEADS_DIR,filename);//µ±Ç°file
-//            if (readContentsAsString(file).equals(headID())){//Èç¹ûheadÄÚÈİµÈÓÚ´Ë·ÖÖ§ÄÚÈİ£¬¼´ÕÒµ½Ö÷·ÖÖ§
+//        for (String filename:filelist) {//éå†headsæ–‡ä»¶å¤¹
+//            File file = join(HEADS_DIR,filename);//å½“å‰file
+//            if (readContentsAsString(file).equals(headID())){//å¦‚æœheadå†…å®¹ç­‰äºæ­¤åˆ†æ”¯å†…å®¹ï¼Œå³æ‰¾åˆ°ä¸»åˆ†æ”¯
 //                return filename;
 //            }
 //        }
 //        return null;
         return readContentsAsString(HEAD);
     }
-    public static void cwdGetFile(Commit commit ,String filename)  {//Ìí¼ÓcommitÖĞµÄÖ¸¶¨fileµ½CWD
-        File blobfile = commit.blobID.get(filename);//»ñÈ¡blobfile
-        Blob blob = readObject(blobfile, Blob.class);//»ñÈ¡blob
-        File newfile = join(CWD,blob.fileName);//´´½¨blob.filenameÎªÃû×ÖµÄÎÄ¼şµ½CWD
+    public static void cwdGetFile(Commit commit ,String filename)  {//æ·»åŠ commitä¸­çš„æŒ‡å®šfileåˆ°CWD
+        File blobfile = commit.blobID.get(filename);//è·å–blobfile
+        Blob blob = readObject(blobfile, Blob.class);//è·å–blob
+        File newfile = join(CWD,blob.fileName);//åˆ›å»ºblob.filenameä¸ºåå­—çš„æ–‡ä»¶åˆ°CWD
         try {
-            Files.writeString(newfile.toPath(), blob.fileContent);//½«filecontentĞ´ÈëÎÄ¼ş£¬²¢²úÉúÎÄ¼ş
+            Files.writeString(newfile.toPath(), blob.fileContent);//å°†filecontentå†™å…¥æ–‡ä»¶ï¼Œå¹¶äº§ç”Ÿæ–‡ä»¶
         } catch (IOException e) {
-            e.printStackTrace(); // ´òÓ¡Òì³£ĞÅÏ¢
+            e.printStackTrace(); // æ‰“å°å¼‚å¸¸ä¿¡æ¯
         }
 
     }
-    public static boolean fileContains(File FILE,String filename){    //ÅĞ¶Ï¸ÃÄ¿Â¼ÏÂÊÇ·ñ´æÔÚ¸ÃÎÄ¼şÃû
+    public static boolean fileContains(File FILE,String filename){    //åˆ¤æ–­è¯¥ç›®å½•ä¸‹æ˜¯å¦å­˜åœ¨è¯¥æ–‡ä»¶å
         List<String> filelist = Utils.plainFilenamesIn(FILE);
         for (String file:filelist){
             if (file.equals(filename)){
@@ -582,9 +582,9 @@ public class Repository {
     }
     public static void printbranches(){
         List<String> filelist = Utils.plainFilenamesIn(HEADS_DIR);
-        for (String filename:filelist) {//±éÀúheadsÎÄ¼ş¼Ğ
-            File file = join(HEADS_DIR,filename);//µ±Ç°file
-            if (readContentsAsString(file).equals(headID())){//Èç¹ûheadÄÚÈİµÈÓÚ´Ë·ÖÖ§ÄÚÈİ£¬¼´ÕÒµ½Ö÷·ÖÖ§
+        for (String filename:filelist) {//éå†headsæ–‡ä»¶å¤¹
+            File file = join(HEADS_DIR,filename);//å½“å‰file
+            if (readContentsAsString(file).equals(headID())){//å¦‚æœheadå†…å®¹ç­‰äºæ­¤åˆ†æ”¯å†…å®¹ï¼Œå³æ‰¾åˆ°ä¸»åˆ†æ”¯
                 System.out.println("*" + filename);
             }else{
                 System.out.println(filename);
@@ -592,9 +592,9 @@ public class Repository {
         }
         System.out.println();
     }
-    public static void printstage(String name){//´òÓ¡stageÇøÓò´æ´¢µÄÎÄ¼şÃû
+    public static void printstage(String name){//æ‰“å°stageåŒºåŸŸå­˜å‚¨çš„æ–‡ä»¶å
         if (name.equals("add")){
-            AddStage stage = readObject(ADDSTAGE,AddStage.class);//¶ÁÈ¡ÒÑ¾­±£´æµÄstage
+            AddStage stage = readObject(ADDSTAGE,AddStage.class);//è¯»å–å·²ç»ä¿å­˜çš„stage
             Collection<String> stagefiles = stage.hashMap.keySet();
             //System.out.println(stage.hashMap.size());
             for (String stagefile : stagefiles) {
@@ -622,7 +622,7 @@ public class Repository {
             //System.out.println("parentsize  " + commit.parentsID.size());
             String parent1 = commit.parentsID.get(0).substring(0,7);
             String parent2 = commit.parentsID.get(1).substring(0,7);
-            System.out.println("Merge: " + parent1 + " " + parent2);//parentsizeÔõÃ´»áÊÇ0ÄØ
+            System.out.println("Merge: " + parent1 + " " + parent2);//parentsizeæ€ä¹ˆä¼šæ˜¯0å‘¢
             System.out.println("Date: " + commit.timeStamp);
             System.out.println(commit.message);
             //System.out.println("Merged development into master.");
@@ -639,13 +639,13 @@ public class Repository {
     public static String headID(){
         return readContentsAsString(join(HEADS_DIR,readContentsAsString(HEAD)));
     }
-    public static Commit headcommit(){ //·µ»ØÍ·½ÚµãÖ¸ÏòµÄcommit
+    public static Commit headcommit(){ //è¿”å›å¤´èŠ‚ç‚¹æŒ‡å‘çš„commit
         File headcommitfile = join(OBJECTS_DIR,headID());
         return readObject(headcommitfile, Commit.class);
     }
-    public static void initGitlet(String cmd){//ÅĞ¶ÏÊÇ·ñ´æÔÚ³õÊ¼»¯Ä¿Â¼.gitlet
-        boolean gitletExist = (GITLET_DIR.exists() && GITLET_DIR.isDirectory()); //.gitlet´æÔÚ²¢ÇÒÊÇ¸öÄ¿Â¼
-        if (cmd.equals("init")){   //   ÔÚJavaÖĞ£¬''£¨µ¥ÒıºÅ£©ÓÃÓÚ±íÊ¾×Ö·û£¬¶ø""£¨Ë«ÒıºÅ£©ÓÃÓÚ±íÊ¾×Ö·û´®¡£
+    public static void initGitlet(String cmd){//åˆ¤æ–­æ˜¯å¦å­˜åœ¨åˆå§‹åŒ–ç›®å½•.gitlet
+        boolean gitletExist = (GITLET_DIR.exists() && GITLET_DIR.isDirectory()); //.gitletå­˜åœ¨å¹¶ä¸”æ˜¯ä¸ªç›®å½•
+        if (cmd.equals("init")){   //   åœ¨Javaä¸­ï¼Œ''ï¼ˆå•å¼•å·ï¼‰ç”¨äºè¡¨ç¤ºå­—ç¬¦ï¼Œè€Œ""ï¼ˆåŒå¼•å·ï¼‰ç”¨äºè¡¨ç¤ºå­—ç¬¦ä¸²ã€‚
             if (gitletExist){
                 System.out.println("A Gitlet version-control system already exists in the current directory.");
                 System.exit(0);
@@ -658,7 +658,7 @@ public class Repository {
             }
         }
     }
-    public static boolean blobExist(String blob){  //ÅĞ¶ÏobjeÖĞÊÇ·ñÓĞ¸Ãblob
+    public static boolean blobExist(String blob){  //åˆ¤æ–­objeä¸­æ˜¯å¦æœ‰è¯¥blob
         File blobfile = join(BLOB_DIR, blob);
         return blobfile.exists();
     }
