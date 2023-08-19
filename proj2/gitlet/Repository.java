@@ -413,11 +413,14 @@ public class Repository {
         Commit splitcommit = getcommit(splitpoint(branchname));
         //System.out.println(splitcommitID);
         if (splitcommitID.equals(headID())){//如果分割点就是当前分支
-            try {
-                Files.writeString(HEAD.toPath(),readContentsAsString(join(HEADS_DIR,branchname)));//更新head至该branch
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+//            try {
+//                Files.writeString(HEAD.toPath(),readContentsAsString(join(HEADS_DIR,branchname)));//更新head至该branch
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//
+            String[] a = {"checkout",branchname};
+            checkout(a);
             System.out.println("Current branch fast-forwarded");
             System.exit(0);
         } else if (splitcommitID.equals(readContentsAsString(join(HEADS_DIR,branchname)))) {//如果分割点等于给定分支
@@ -473,7 +476,11 @@ public class Repository {
                                 conflict(filename,headcommit,branchcommit,mergecommit);
                             }
                         }else { //b不追踪
-                            restrictedDelete(join(CWD,filename));
+                            if (!headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))){//s != h,b不追踪
+                                conflict(filename,headcommit,branchcommit,mergecommit);
+                            }else {
+                                restrictedDelete(join(CWD,filename));
+                            }
                             //rm(filename);//取消追踪
                         }
                     } else { //h不追踪
@@ -513,9 +520,13 @@ public class Repository {
     }
     public static void conflict(String filename,Commit headcommit,Commit branchcommit,Commit mergecommit){
             Blob head = readObject(headcommit.blobID.get(filename),Blob.class);
+            String branchfilecontent ="";
+            if (branchcommit.blobID.containsKey(filename)){//判断不存在的情况
             Blob branch = readObject(branchcommit.blobID.get(filename),Blob.class);
+            branchfilecontent = branch.fileContent;
+            }
             String headfilecontent = head.fileContent;
-            String branchfilecontent = branch.fileContent;
+
             String newcontents = "<<<<<<< HEAD\n" + headfilecontent  + "=======\n" + branchfilecontent + ">>>>>>>\n";
         try {
             Files.writeString(join(CWD,filename).toPath(),newcontents);
