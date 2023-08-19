@@ -358,12 +358,12 @@ public class Repository {
         Commit newcommit = readObject(join(OBJECTS_DIR,newcommitID), Commit.class);//获取newcommit
         Set<String> headSet= headcommit.blobID.keySet(); //当前headcommit所有的追踪文件的set
         Set<String> newSet = newcommit.blobID.keySet(); //当前newcommit所有的追踪文件的set
-        for (String newtrackfile:newSet){//但前commit未追踪，提取的追踪了，并且cwd中有该文件要覆盖
-            if (!headSet.contains(newtrackfile) && fileContains(CWD,newtrackfile)){
-                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
-                System.exit(0);
-            }
-        }
+//        for (String newtrackfile:newSet){//但前commit未追踪，提取的追踪了，并且cwd中有该文件要覆盖
+//            if (!headSet.contains(newtrackfile) && fileContains(CWD,newtrackfile)){
+//                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+//                System.exit(0);
+//            }
+//        }
         for (String headtrackfile:headSet){
             if (!newSet.contains(headtrackfile)){//如果提取的追踪不包含当前的追踪
                 restrictedDelete(join(CWD,headtrackfile));//如果当前目录有该文件，则删除head追踪的文件
@@ -395,6 +395,37 @@ public class Repository {
             System.out.println("You have uncommitted changes.");
             System.exit(0);
         }
+    }
+    public static List<String> notracked(){//获取未被追踪的blobid
+        List<String> comitIDlist = Utils.plainFilenamesIn(OBJECTS_DIR);
+        List<String> notrackblobID = new ArrayList<>();
+        List<String> blobIDlist = Utils.plainFilenamesIn(BLOB_DIR);//获取所有blob id
+        List<String> trackedblob = new ArrayList<>();
+        for (String commitID:comitIDlist){
+            Commit commit = getcommit(commitID);
+            for (String filename:commit.blobID.keySet()){
+                File blobfile = commit.blobID.get(filename);
+                Blob blob = readObject(blobfile,Blob.class);
+                trackedblob.add(blob.generateID());
+            }
+        }
+        for (String blobID:blobIDlist){
+            if (!trackedblob.contains(blobID)){
+                notrackblobID.add(blobID);
+            }
+        }
+        return notrackblobID;
+    }
+    public static String getblobid(Commit commit,String filename){//返回commit追踪的blobid
+        String blobID =null;
+        for (String name:commit.blobID.keySet()){
+            if (name.equals(filename)){
+                File blobfile = commit.blobID.get(name);
+                Blob blob = readObject(blobfile,Blob.class);
+                blobID = blob.generateID();
+            }
+        }
+        return blobID;
     }
     public static void merge(String branchname){
         initGitlet("merge");
@@ -435,13 +466,8 @@ public class Repository {
             Set<String> bset = branchcommit.blobID.keySet();
             TreeMap<String,File> allmap = new TreeMap<>();//保存所有
             Set<String> fileset = fileset(mergecommit, headcommit, branchcommit);//三个commit追踪的所有的文件
-            List<String> cwdfileset = Utils.plainFilenamesIn(CWD);
-            for (String cwdfile : cwdfileset){
-                if (!fileset.contains(cwdfile)){
-                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
-                    System.exit(0);
-                }
-            }
+            List<String> blobset = Utils.plainFilenamesIn(BLOB_DIR);
+            List<String> notrackedblobID = notracked();//未被追踪的所有blobid
             for (String filename : fileset){
                 if (!sset.contains(filename)){//sset未追踪
                     if (hset.contains(filename) && bset.contains(filename)){//h和b都包含
@@ -458,6 +484,10 @@ public class Repository {
                             //mergecommit.blobID.put(filename,headcommit.blobID.get(filename));
                             //restrictedDelete(join(CWD,filename));
                         } else if (bset.contains(filename)) { //s，h无，b有
+                            if (notrackedblobID.contains(getblobid(branchcommit,filename))){
+                                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                                System.exit(0);
+                            }
                             stagehave(filename);
                             mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
                             cwdGetFile(branchcommit,filename);//添加文件
@@ -471,6 +501,10 @@ public class Repository {
                                 //h = s,b != s
                                 stagehave(filename);
                                 mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
+                                if (notrackedblobID.contains(getblobid(branchcommit,filename))){
+                                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                                    System.exit(0);
+                                }
                                 cwdGetFile(branchcommit,filename);//添加文件
                                 //add(filename);
                             }
@@ -486,6 +520,10 @@ public class Repository {
                             if (!headcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename))){//s != h,b不追踪
                                 conflict(filename,headcommit,branchcommit,mergecommit);
                             }else {
+                                if (notrackedblobID.contains(getblobid(branchcommit,filename))){
+                                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                                    System.exit(0);
+                                }
                                 restrictedDelete(join(CWD,filename));
                             }
                             //rm(filename);//取消追踪
@@ -495,11 +533,19 @@ public class Repository {
                             if (!branchcommit.blobID.get(filename).equals(splitcommit.blobID.get(filename)))
                                 //b != s
                                 //mergecommit.blobID.put(filename,branchcommit.blobID.get(filename));
-                                cwdGetFile(branchcommit,filename);
+                                if (notrackedblobID.contains(getblobid(branchcommit,filename))){
+                                    System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                                    System.exit(0);
+                                }
+                            cwdGetFile(branchcommit,filename);
                         }
                         else {//b不追踪
                             //33 没进来
                             //restrictedDelete(join(CWD,"f.txt"));
+                            if (notrackedblobID.contains(getblobid(branchcommit,filename))){
+                                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                                System.exit(0);
+                            }
                             restrictedDelete(join(CWD,filename));
                         }
                     }
